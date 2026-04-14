@@ -378,6 +378,7 @@ None. The world is wordless. Communication is purely visual and sonic.
 - **Invisible When Possible**: The best UI is one the player doesn't think about.
 - **Diegetic Information**: Data lives in the world (icons over settlements, glowing mana on structures).
 - **Keyboard & Mouse Support**: Click to select terrain and spend mana. Arrow keys or WASD to pan camera.
+- **Multiple language UI**: While initial development supports english language only, support for translation must be available from the beginning
 
 ### Main Screens
 
