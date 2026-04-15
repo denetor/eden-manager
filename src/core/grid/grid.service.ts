@@ -1,22 +1,36 @@
+import { EventEmitter } from 'events';
 import { Cell, CellState, TerrainType } from './grid.model';
+
+/**
+ * Event payload when a single cell changes
+ */
+export interface CellChangedPayload {
+    x: number;
+    y: number;
+    cell: Cell;
+}
 
 /**
  * Grid manages a 2D world as a flat array of cells.
  * Stores cells indexed as: cells[x + y * width]
+ * Extends EventEmitter to notify listeners of cell mutations.
  */
-export class Grid {
+export class Grid extends EventEmitter {
     private width: number;
     private height: number;
     private cells: Cell[];
+    private dirty: Set<string>;
 
     /**
      * Create a new Grid with given dimensions.
      * All cells initialized to Veiled state with Meadow terrain.
      */
     constructor(width: number, height: number) {
+        super();
         this.width = width;
         this.height = height;
         this.cells = [];
+        this.dirty = new Set();
 
         // Initialize flat array with Cell objects
         for (let y = 0; y < height; y++) {
@@ -75,5 +89,78 @@ export class Grid {
 
     getHeight(): number {
         return this.height;
+    }
+
+    /**
+     * Reshape a cell to a new terrain type.
+     * Marks cell as dirty and emits cellChanged event.
+     */
+    reshape(x: number, y: number, terrainType: TerrainType): void {
+        const cell = this.getCell(x, y);
+        if (!cell) {
+            return;
+        }
+
+        cell.terrainType = terrainType;
+        this.markDirty(x, y);
+        this.emit('cellChanged', { x, y, cell } as CellChangedPayload);
+    }
+
+    /**
+     * Unveil a cell, changing state from Veiled to Dormant.
+     * Marks cell as dirty and emits cellChanged event.
+     * Idempotent: calling on non-Veiled cell has no effect.
+     */
+    unveil(x: number, y: number): void {
+        const cell = this.getCell(x, y);
+        if (!cell || cell.state !== 'Veiled') {
+            return;
+        }
+
+        cell.state = 'Dormant';
+        this.markDirty(x, y);
+        this.emit('cellChanged', { x, y, cell } as CellChangedPayload);
+    }
+
+    /**
+     * Awaken a cell, changing state from Dormant to Active.
+     * Marks cell as dirty and emits cellChanged event.
+     * Idempotent: calling on non-Dormant cell has no effect.
+     */
+    awaken(x: number, y: number): void {
+        const cell = this.getCell(x, y);
+        if (!cell || cell.state !== 'Dormant') {
+            return;
+        }
+
+        cell.state = 'Active';
+        this.markDirty(x, y);
+        this.emit('cellChanged', { x, y, cell } as CellChangedPayload);
+    }
+
+    /**
+     * Mark a cell as dirty (modified in current pulse).
+     * Dirty tracking enables efficient synergy checks.
+     */
+    private markDirty(x: number, y: number): void {
+        this.dirty.add(`${x},${y}`);
+    }
+
+    /**
+     * Get all dirty cells as array of coordinates.
+     * Returns empty array if no dirty cells.
+     */
+    getDirtyCells(): Array<{ x: number; y: number }> {
+        return Array.from(this.dirty).map((key) => {
+            const [x, y] = key.split(',').map(Number);
+            return { x, y };
+        });
+    }
+
+    /**
+     * Clear all dirty flags (called at end of Divine Pulse).
+     */
+    clearDirty(): void {
+        this.dirty.clear();
     }
 }
