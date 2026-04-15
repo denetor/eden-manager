@@ -18,6 +18,7 @@ import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
+import {GridBackground} from "../ui/grid/grid-background";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -33,7 +34,6 @@ export class GameScene extends Scene {
     private tileMap!: TileMap;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
-    private cellsGrid: Actor;
     private selectedCell: Actor;
     private selectedX: number = 0;
     private selectedY: number = 0;
@@ -47,7 +47,6 @@ export class GameScene extends Scene {
     constructor() {
         super();
         this.persistenceService = new PersistenceService();
-        this.cellsGrid = undefined as any;
         this.selectedCell = undefined as any;
         this.feedbackMessageActor = undefined as any;
     }
@@ -69,6 +68,8 @@ export class GameScene extends Scene {
         // 3. Create TileMap for rendering the grid
         this.initializeTileMap(grid);
         this.add(this.tileMap);
+        const cellsGrid = new GridBackground({width: grid.getWidth(), height: grid.getHeight(), tileSize: this.tileSize});
+        this.add(cellsGrid);
 
         // 4. Create HUD displays
         this.manaDisplay = new ManaDisplay(mana);
@@ -76,7 +77,6 @@ export class GameScene extends Scene {
 
         this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
-        this.cellsGrid = undefined as any;
         this.selectedCell = undefined as any;
 
         // 5. Subscribe to input events
@@ -313,51 +313,6 @@ export class GameScene extends Scene {
      * TODO REFACTOR remove from here, as no more canvas drawing is needed
      */
     private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
-        if (!this.cellsGrid) {
-            const grid = this.gameEngine.getGrid();
-            const width = grid.getWidth();
-            const height = grid.getHeight();
-            const gridColor = new Color(255, 255, 255, 0.25);
-
-            this.cellsGrid = new Actor({
-                anchor: vec(0,0),
-            });
-
-            // horizontal lines
-            let currentY = 0;
-            let maxX = width * this.tileSize;
-            for (let y = 0; y <= height; y++) {
-                this.cellsGrid.addChild(new Actor({
-                    anchor: vec(0,0),
-                    graphic: new Line({
-                        start: vec(0, currentY),
-                        end: vec(maxX, currentY),
-                        color: gridColor,
-                        thickness: 2,
-                    }),
-                }));
-                currentY += this.tileSize;
-            }
-
-            // vertical lines
-            let currentX = 0;
-            let maxY = height * this.tileSize;
-            for (let x = 0; x <= width; x++) {
-                this.cellsGrid.addChild(new Actor({
-                    anchor: vec(0,0),
-                    graphic: new Line({
-                        start: vec(currentX, 0),
-                        end: vec(currentX, maxY),
-                        color: gridColor,
-                        thickness: 2,
-                    }),
-                }));
-                currentX += this.tileSize;
-            }
-
-            this.engine.add(this.cellsGrid);
-        }
-
         // Highlight selected cell with bright border
         if (this.selectedX === undefined || this.selectedY === undefined) {
             // remove selection if no cell is selected
