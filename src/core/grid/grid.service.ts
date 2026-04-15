@@ -11,6 +11,17 @@ export interface CellChangedPayload {
 }
 
 /**
+ * Event payload when multiple cells change in a batch
+ */
+export interface BatchChangedPayload {
+    changes: Array<{
+        x: number;
+        y: number;
+        terrainType: TerrainType;
+    }>;
+}
+
+/**
  * Grid manages a 2D world as a flat array of cells.
  * Stores cells indexed as: cells[x + y * width]
  * Extends EventEmitter to notify listeners of cell mutations.
@@ -136,6 +147,32 @@ export class Grid extends EventEmitter {
         cell.state = 'Active';
         this.markDirty(x, y);
         this.emit('cellChanged', { x, y, cell } as CellChangedPayload);
+    }
+
+    /**
+     * Apply multiple terrain changes atomically.
+     * All changes are applied before emitting event.
+     * Marks all affected cells as dirty and emits single batchChanged event.
+     */
+    reshapeBatch(
+        changes: Array<{ x: number; y: number; terrainType: TerrainType }>
+    ): void {
+        // Early return if no changes
+        if (changes.length === 0) {
+            return;
+        }
+
+        // Apply all changes atomically (before emitting)
+        for (const change of changes) {
+            const cell = this.getCell(change.x, change.y);
+            if (cell) {
+                cell.terrainType = change.terrainType;
+                this.markDirty(change.x, change.y);
+            }
+        }
+
+        // Emit single batch event with all changes
+        this.emit('batchChanged', { changes } as BatchChangedPayload);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Grid, CellChangedPayload } from './grid.service';
+import { Grid, CellChangedPayload, BatchChangedPayload } from './grid.service';
 import { CellState, TerrainType } from './grid.model';
 
 describe('Grid', () => {
@@ -564,6 +564,217 @@ describe('Grid', () => {
 
             expect(eventFired).toBe(true);
             done();
+        });
+    });
+
+    describe('reshapeBatch', () => {
+        let grid: Grid;
+
+        beforeEach(() => {
+            grid = new Grid(16, 16);
+        });
+
+        it('should apply multiple changes atomically', () => {
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: 8, y: 8, terrainType: 'Mountain' as TerrainType },
+                { x: 3, y: 3, terrainType: 'Water' as TerrainType },
+            ];
+
+            grid.reshapeBatch(changes);
+
+            expect(grid.getCell(5, 5)!.terrainType).toBe('Forest');
+            expect(grid.getCell(8, 8)!.terrainType).toBe('Mountain');
+            expect(grid.getCell(3, 3)!.terrainType).toBe('Water');
+        });
+
+        it('should emit single batchChanged event with all changes', (done) => {
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: 8, y: 8, terrainType: 'Mountain' as TerrainType },
+            ];
+
+            grid.on('batchChanged', (payload: BatchChangedPayload) => {
+                expect(payload.changes.length).toBe(2);
+                expect(payload.changes).toContainEqual({
+                    x: 5,
+                    y: 5,
+                    terrainType: 'Forest',
+                });
+                expect(payload.changes).toContainEqual({
+                    x: 8,
+                    y: 8,
+                    terrainType: 'Mountain',
+                });
+                done();
+            });
+
+            grid.reshapeBatch(changes);
+        });
+
+        it('should mark all affected cells as dirty', () => {
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: 8, y: 8, terrainType: 'Mountain' as TerrainType },
+                { x: 3, y: 3, terrainType: 'Water' as TerrainType },
+            ];
+
+            grid.reshapeBatch(changes);
+
+            const dirtyCoords = grid.getDirtyCells();
+            expect(dirtyCoords).toContainEqual({ x: 5, y: 5 });
+            expect(dirtyCoords).toContainEqual({ x: 8, y: 8 });
+            expect(dirtyCoords).toContainEqual({ x: 3, y: 3 });
+            expect(dirtyCoords.length).toBe(3);
+        });
+
+        it('should be no-op for empty changes array', () => {
+            let eventEmitted = false;
+            grid.on('batchChanged', () => {
+                eventEmitted = true;
+            });
+
+            grid.reshapeBatch([]);
+
+            expect(eventEmitted).toBe(false);
+            expect(grid.getDirtyCells()).toEqual([]);
+        });
+
+        it('should skip out-of-bounds coordinates silently', () => {
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: -1, y: 0, terrainType: 'Mountain' as TerrainType }, // out-of-bounds
+                { x: 16, y: 8, terrainType: 'Water' as TerrainType }, // out-of-bounds
+                { x: 8, y: 8, terrainType: 'Meadow' as TerrainType },
+            ];
+
+            grid.reshapeBatch(changes);
+
+            const dirtyCoords = grid.getDirtyCells();
+            // Should only have the in-bounds cells marked dirty
+            expect(dirtyCoords).toContainEqual({ x: 5, y: 5 });
+            expect(dirtyCoords).toContainEqual({ x: 8, y: 8 });
+            expect(dirtyCoords.length).toBe(2); // out-of-bounds are skipped
+
+            // Verify only in-bounds cells changed
+            expect(grid.getCell(5, 5)!.terrainType).toBe('Forest');
+            expect(grid.getCell(8, 8)!.terrainType).toBe('Meadow');
+            expect(grid.getCell(0, 0)!.terrainType).toBe('Meadow'); // unchanged
+        });
+
+        it('should handle single change batch', () => {
+            const changes = [
+                { x: 7, y: 9, terrainType: 'Ruins' as TerrainType },
+            ];
+
+            grid.reshapeBatch(changes);
+
+            expect(grid.getCell(7, 9)!.terrainType).toBe('Ruins');
+            expect(grid.getDirtyCells()).toContainEqual({ x: 7, y: 9 });
+        });
+
+        it('should handle large batch (3x3 area)', () => {
+            const changes: Array<{
+                x: number;
+                y: number;
+                terrainType: TerrainType;
+            }> = [];
+            for (let x = 5; x <= 7; x++) {
+                for (let y = 5; y <= 7; y++) {
+                    changes.push({
+                        x,
+                        y,
+                        terrainType: 'Forest' as TerrainType,
+                    });
+                }
+            }
+
+            grid.reshapeBatch(changes);
+
+            expect(grid.getDirtyCells().length).toBe(9);
+            for (let x = 5; x <= 7; x++) {
+                for (let y = 5; y <= 7; y++) {
+                    expect(grid.getCell(x, y)!.terrainType).toBe('Forest');
+                }
+            }
+        });
+
+        it('should allow multiple batchChanged listeners', () => {
+            const calls1: BatchChangedPayload[] = [];
+            const calls2: BatchChangedPayload[] = [];
+
+            grid.on('batchChanged', (payload) => calls1.push(payload));
+            grid.on('batchChanged', (payload) => calls2.push(payload));
+
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+            ];
+            grid.reshapeBatch(changes);
+
+            expect(calls1.length).toBe(1);
+            expect(calls2.length).toBe(1);
+            expect(calls1[0].changes).toEqual(calls2[0].changes);
+        });
+
+        it('should preserve change order in event payload', (done) => {
+            const changes = [
+                { x: 1, y: 1, terrainType: 'Forest' as TerrainType },
+                { x: 2, y: 2, terrainType: 'Mountain' as TerrainType },
+                { x: 3, y: 3, terrainType: 'Water' as TerrainType },
+            ];
+
+            grid.on('batchChanged', (payload: BatchChangedPayload) => {
+                expect(payload.changes[0]).toEqual({
+                    x: 1,
+                    y: 1,
+                    terrainType: 'Forest',
+                });
+                expect(payload.changes[1]).toEqual({
+                    x: 2,
+                    y: 2,
+                    terrainType: 'Mountain',
+                });
+                expect(payload.changes[2]).toEqual({
+                    x: 3,
+                    y: 3,
+                    terrainType: 'Water',
+                });
+                done();
+            });
+
+            grid.reshapeBatch(changes);
+        });
+
+        it('should not emit cellChanged for batch operations', () => {
+            let cellChangedCount = 0;
+            grid.on('cellChanged', () => {
+                cellChangedCount++;
+            });
+
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: 8, y: 8, terrainType: 'Mountain' as TerrainType },
+            ];
+
+            grid.reshapeBatch(changes);
+
+            expect(cellChangedCount).toBe(0); // Only batchChanged emitted, not cellChanged
+        });
+
+        it('should apply all changes atomically before emitting event', (done) => {
+            const changes = [
+                { x: 5, y: 5, terrainType: 'Forest' as TerrainType },
+                { x: 8, y: 8, terrainType: 'Mountain' as TerrainType },
+            ];
+
+            grid.on('batchChanged', () => {
+                // When listener fires, all changes must already be applied to grid
+                expect(grid.getCell(5, 5)!.terrainType).toBe('Forest');
+                expect(grid.getCell(8, 8)!.terrainType).toBe('Mountain');
+                done();
+            });
+
+            grid.reshapeBatch(changes);
         });
     });
 });
