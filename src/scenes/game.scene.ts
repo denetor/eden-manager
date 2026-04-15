@@ -1,7 +1,6 @@
 import {
     Actor,
     Color,
-    CoordPlane,
     Engine,
     ExcaliburGraphicsContext,
     Keys, Line,
@@ -194,6 +193,7 @@ export class GameScene extends Scene {
         });
     }
 
+
     /**
      * Select a cell and update UI.
      */
@@ -202,6 +202,7 @@ export class GameScene extends Scene {
         this.selectedY = y;
         this.cellInfo.setSelectedCell(x, y);
     }
+
 
     /**
      * Convert screen coordinates to grid coordinates (accounting for tile size).
@@ -219,6 +220,7 @@ export class GameScene extends Scene {
 
     /**
      * Attempt to reshape a cell with feedback.
+     *
      */
     private attemptReshape(x: number, y: number, terrainType: string): void {
         const mana = this.gameEngine.getMana();
@@ -410,8 +412,11 @@ export class GameScene extends Scene {
         }
     }
 
+
     /**
      * Draw feedback message on screen.
+     *
+     * TODO REFACTOR use an actor
      */
     private drawFeedbackMessage(ctx: ExcaliburGraphicsContext): void {
         // const canvas = document.querySelector('canvas') as HTMLCanvasElement;

@@ -1,5 +1,5 @@
-import { Actor, Engine, Vector } from 'excalibur';
-import { ManaService } from '../../core/mana/mana.service';
+import {Actor, Color, Engine, Font, FontUnit, Label, vec} from 'excalibur';
+import {ManaService} from '../../core/mana/mana.service';
 
 /**
  * ManaDisplay shows current/max mana in the HUD.
@@ -8,40 +8,43 @@ import { ManaService } from '../../core/mana/mana.service';
 export class ManaDisplay extends Actor {
     private mana: ManaService;
     private engine: Engine;
+    private manaBar: Actor;
+    private caption: Actor;
 
+
+    // TODO REFACTOR use a component/system to update mana value
     constructor(mana: ManaService, engine: Engine) {
         super({
+            anchor: vec(0,0),
             x: 20,
             y: 20,
             width: 200,
-            height: 50,
-            color: undefined,
+            height: 30,
+            color: new Color(0,0,0, 0.7),
         });
         this.mana = mana;
         this.engine = engine;
-    }
 
-    override onPostDraw(ctx: CanvasRenderingContext2D): void {
-        // const current = this.mana.getCurrent();
-        // const max = this.mana.getMax();
-        // const percent = (current / max) * 100;
-        //
-        // // Draw background
-        // ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        // ctx.fillRect(this.pos.x, this.pos.y, 200, 30);
-        //
-        // // Draw border
-        // ctx.strokeStyle = '#ffffff';
-        // ctx.lineWidth = 2;
-        // ctx.strokeRect(this.pos.x, this.pos.y, 200, 30);
-        //
-        // // Draw mana bar (blue)
-        // ctx.fillStyle = '#0077ff';
-        // ctx.fillRect(this.pos.x + 4, this.pos.y + 4, (200 - 8) * (percent / 100), 22);
-        //
-        // // Draw text
-        // ctx.fillStyle = '#ffffff';
-        // ctx.font = '14px Arial';
-        // ctx.fillText(`Mana: ${current}/${max}`, this.pos.x + 10, this.pos.y + 22);
+        this.manaBar = new Actor({
+            anchor: vec(0,0),
+            pos: vec(4, 4),
+            height: 22,
+            width: 200 - 8,
+            color: new Color(0,127, 255),
+        });
+        this.caption = new Label({
+            anchor: vec(0,0),
+            pos: vec(8, 8),
+            text: `Mana: ${this.mana.getCurrent()}/${this.mana.getMax()}`,
+            font: new Font({
+                family: 'Arial',
+                size: 14,
+                unit: FontUnit.Px,
+            }),
+            color: new Color(255, 255, 255),
+        });
+
+        this.addChild(this.manaBar);
+        this.addChild(this.caption);
     }
 }

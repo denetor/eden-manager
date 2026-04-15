@@ -31,6 +31,8 @@ export class CellInfo extends Actor {
         this.selectedY = y;
     }
 
+
+    // TODO REFACTOR draw as actor, not here
     override onPostDraw(ctx: CanvasRenderingContext2D): void {
         const cell = this.grid.getCell(this.selectedX, this.selectedY);
         if (!cell) {
