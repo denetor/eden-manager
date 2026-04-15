@@ -45,18 +45,63 @@ npm run test:integration-update  # Update Playwright snapshot tests
 
 ```
 /src
-  main.ts              # Engine initialization (minimal, as designed)
-  level.ts             # Scene class (MyLevel extends Excalibur Scene)
-  player.ts            # Example Actor (Player) - demonstrates patterns
-  resources.ts         # Asset loader (images, sounds, etc.)
-  vite-env.d.ts        # Vite type definitions
-  files.d.ts           # Custom type definitions
-
-/tests                 # Playwright integration tests
-/resources             # Game assets & documentation
+    /core                    # Logica di gioco principale                                                                                                                                                                                                                                                          
+      /grid                  # Sistema griglia e celle                                                                                                                                                                                                                                                             
+        grid.system.ts                                                                                                                                                                                                                                                                                             
+        grid.model.ts                                                                                                                                                                                                                                                                                              
+        grid.service.ts                        
+      /mana                  # Sistema mana                                                                                                                                                                                                                                                                        
+        mana.system.ts                                                                                                                                                                                                                                                                                             
+        mana.model.ts
+        mana.service.ts                                                                                                                                                                                                                                                                                            
+      /synergy               # Motore di sinergia celle-a-celle
+        synergy.system.ts                                                                                                                                                                                                                                                                                          
+        synergy.service.ts
+      /creatures             # Creature leggendarie                                                                                                                                                                                                                                                                
+        creature.actor.ts                                                                                                                                                                                                                                                                                          
+        creature.model.ts
+        creatures.system.ts                                                                                                                                                                                                                                                                                        
+      /humans                # Sistema AI umani
+        human.actor.ts                                                                                                                                                                                                                                                                                             
+        human.model.ts
+        humans.system.ts                                                                                                                                                                                                                                                                                           
+    /ui                      # Componenti UI e HUD
+      /hud                   # Head-up display
+        mana-display.ts                                                                                                                                                                                                                                                                                            
+        cell-info.ts
+      /menus                 # Menu e dialoghi                                                                                                                                                                                                                                                                     
+        main-menu.scene.ts                                                                                                                                                                                                                                                                                         
+        pause-menu.scene.ts
+    /graphics                # Rendering e coordinate                                                                                                                                                                                                                                                              
+      coordinate-helper.ts   # logicToScreen(), screenToLogic()
+      perspective.ts         # Top-down vs isometric swap                                                                                                                                                                                                                                                          
+      particles.system.ts                      
+    /audio                   # Audio e musica  
+      audio.service.ts                                                                                                                                                                                                                                                                                             
+      ambience-manager.ts                      
+    /persistence             # Save/load
+      save.service.ts                                                                                                                                                                                                                                                                                              
+      load.service.ts                          
+    /shared                  # Utility e helper condivisi                                                                                                                                                                                                                                                          
+      /models
+        entity.model.ts                                                                                                                                                                                                                                                                                            
+      /utils                                   
+        math-utils.ts
+        grid-utils.ts
+      constants.ts
+    /components          # ECS components
+    /systems             # ECS systems  
+    /scenes              # Scene principali
+      game.scene.ts          # Scena di gioco principale   
+    /actors              # Actor globali
+    main.ts              # Engine initialization (minimal, as designed)
+    resources.ts         # Asset loader (images, sounds, etc.)
+    vite-env.d.ts        # Vite type definitions
+    files.d.ts           # Custom type definitions
+/public                # Game assets
   /images              # Sprite assets
-  gdd.md              # Complete game design document
-  how-to-gdd.md       # GDD structure reference
+/tests                 # Playwright integration tests
+/resources             # Project documentation (do not put code or assets here)
 ```
 
 ### Build & Bundling
