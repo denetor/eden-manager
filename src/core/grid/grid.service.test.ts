@@ -777,4 +777,224 @@ describe('Grid', () => {
             grid.reshapeBatch(changes);
         });
     });
+
+    describe('getAdjacentCells', () => {
+        let grid: Grid;
+
+        beforeEach(() => {
+            grid = new Grid(16, 16);
+        });
+
+        it('should return 8 neighbors for interior cell', () => {
+            const neighbors = grid.getAdjacentCells(8, 8);
+
+            expect(neighbors.length).toBe(8);
+            expect(neighbors.every((cell) => cell !== null)).toBe(true);
+        });
+
+        it('should return correct interior neighbors for (8, 8)', () => {
+            const neighbors = grid.getAdjacentCells(8, 8);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 7, y: 7 }); // NW
+            expect(neighborCoords).toContainEqual({ x: 8, y: 7 }); // N
+            expect(neighborCoords).toContainEqual({ x: 9, y: 7 }); // NE
+            expect(neighborCoords).toContainEqual({ x: 7, y: 8 }); // W
+            expect(neighborCoords).toContainEqual({ x: 9, y: 8 }); // E
+            expect(neighborCoords).toContainEqual({ x: 7, y: 9 }); // SW
+            expect(neighborCoords).toContainEqual({ x: 8, y: 9 }); // S
+            expect(neighborCoords).toContainEqual({ x: 9, y: 9 }); // SE
+        });
+
+        it('should return 5 neighbors for edge cell (top edge)', () => {
+            const neighbors = grid.getAdjacentCells(8, 0);
+
+            expect(neighbors.length).toBe(5);
+        });
+
+        it('should return correct neighbors for top edge cell (8, 0)', () => {
+            const neighbors = grid.getAdjacentCells(8, 0);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            // Should have: NW, N (out of bounds), NE, W, E, SW, S, SE
+            // But N is out of bounds, so only 7... wait, that's wrong. Let me check the corner case.
+            // Actually for (8, 0): neighbors are W(7,0), E(9,0), SW(7,1), S(8,1), SE(9,1)
+            // Plus NW(7,-1) out of bounds, N(8,-1) out of bounds, NE(9,-1) out of bounds
+            // So should have 5 neighbors: W, E, SW, S, SE
+
+            expect(neighborCoords).toContainEqual({ x: 7, y: 0 }); // W
+            expect(neighborCoords).toContainEqual({ x: 9, y: 0 }); // E
+            expect(neighborCoords).toContainEqual({ x: 7, y: 1 }); // SW
+            expect(neighborCoords).toContainEqual({ x: 8, y: 1 }); // S
+            expect(neighborCoords).toContainEqual({ x: 9, y: 1 }); // SE
+        });
+
+        it('should return 5 neighbors for edge cell (bottom edge)', () => {
+            const neighbors = grid.getAdjacentCells(8, 15);
+
+            expect(neighbors.length).toBe(5);
+        });
+
+        it('should return correct neighbors for bottom edge cell (8, 15)', () => {
+            const neighbors = grid.getAdjacentCells(8, 15);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 7, y: 14 }); // NW
+            expect(neighborCoords).toContainEqual({ x: 8, y: 14 }); // N
+            expect(neighborCoords).toContainEqual({ x: 9, y: 14 }); // NE
+            expect(neighborCoords).toContainEqual({ x: 7, y: 15 }); // W
+            expect(neighborCoords).toContainEqual({ x: 9, y: 15 }); // E
+        });
+
+        it('should return 5 neighbors for edge cell (left edge)', () => {
+            const neighbors = grid.getAdjacentCells(0, 8);
+
+            expect(neighbors.length).toBe(5);
+        });
+
+        it('should return correct neighbors for left edge cell (0, 8)', () => {
+            const neighbors = grid.getAdjacentCells(0, 8);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 1, y: 7 }); // NE
+            expect(neighborCoords).toContainEqual({ x: 0, y: 7 }); // N
+            expect(neighborCoords).toContainEqual({ x: 1, y: 8 }); // E
+            expect(neighborCoords).toContainEqual({ x: 0, y: 9 }); // S
+            expect(neighborCoords).toContainEqual({ x: 1, y: 9 }); // SE
+        });
+
+        it('should return 5 neighbors for edge cell (right edge)', () => {
+            const neighbors = grid.getAdjacentCells(15, 8);
+
+            expect(neighbors.length).toBe(5);
+        });
+
+        it('should return correct neighbors for right edge cell (15, 8)', () => {
+            const neighbors = grid.getAdjacentCells(15, 8);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 14, y: 7 }); // NW
+            expect(neighborCoords).toContainEqual({ x: 15, y: 7 }); // N
+            expect(neighborCoords).toContainEqual({ x: 14, y: 8 }); // W
+            expect(neighborCoords).toContainEqual({ x: 14, y: 9 }); // SW
+            expect(neighborCoords).toContainEqual({ x: 15, y: 9 }); // S
+        });
+
+        it('should return 3 neighbors for corner cell (top-left)', () => {
+            const neighbors = grid.getAdjacentCells(0, 0);
+
+            expect(neighbors.length).toBe(3);
+        });
+
+        it('should return correct neighbors for top-left corner (0, 0)', () => {
+            const neighbors = grid.getAdjacentCells(0, 0);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 1, y: 0 }); // E
+            expect(neighborCoords).toContainEqual({ x: 0, y: 1 }); // S
+            expect(neighborCoords).toContainEqual({ x: 1, y: 1 }); // SE
+        });
+
+        it('should return 3 neighbors for corner cell (top-right)', () => {
+            const neighbors = grid.getAdjacentCells(15, 0);
+
+            expect(neighbors.length).toBe(3);
+        });
+
+        it('should return correct neighbors for top-right corner (15, 0)', () => {
+            const neighbors = grid.getAdjacentCells(15, 0);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 14, y: 0 }); // W
+            expect(neighborCoords).toContainEqual({ x: 14, y: 1 }); // SW
+            expect(neighborCoords).toContainEqual({ x: 15, y: 1 }); // S
+        });
+
+        it('should return 3 neighbors for corner cell (bottom-left)', () => {
+            const neighbors = grid.getAdjacentCells(0, 15);
+
+            expect(neighbors.length).toBe(3);
+        });
+
+        it('should return correct neighbors for bottom-left corner (0, 15)', () => {
+            const neighbors = grid.getAdjacentCells(0, 15);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 1, y: 14 }); // NE
+            expect(neighborCoords).toContainEqual({ x: 0, y: 14 }); // N
+            expect(neighborCoords).toContainEqual({ x: 1, y: 15 }); // E
+        });
+
+        it('should return 3 neighbors for corner cell (bottom-right)', () => {
+            const neighbors = grid.getAdjacentCells(15, 15);
+
+            expect(neighbors.length).toBe(3);
+        });
+
+        it('should return correct neighbors for bottom-right corner (15, 15)', () => {
+            const neighbors = grid.getAdjacentCells(15, 15);
+            const neighborCoords = neighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            expect(neighborCoords).toContainEqual({ x: 14, y: 14 }); // NW
+            expect(neighborCoords).toContainEqual({ x: 15, y: 14 }); // N
+            expect(neighborCoords).toContainEqual({ x: 14, y: 15 }); // W
+        });
+
+        it('should return empty array for out-of-bounds coordinate', () => {
+            const neighbors = grid.getAdjacentCells(-1, 0);
+
+            expect(neighbors).toEqual([]);
+        });
+
+        it('should return empty array for out-of-bounds coordinate at edge', () => {
+            const neighbors = grid.getAdjacentCells(16, 8);
+
+            expect(neighbors).toEqual([]);
+        });
+
+        it('should return actual Cell references (not copies)', () => {
+            const neighbors = grid.getAdjacentCells(8, 8);
+            const directCell = grid.getCell(7, 7);
+
+            const nwNeighbor = neighbors.find((cell) => cell.x === 7 && cell.y === 7);
+            expect(nwNeighbor).toBe(directCell); // Same object reference
+        });
+
+        it('should reflect terrain changes in neighbors', () => {
+            grid.reshape(7, 7, 'Forest');
+            const neighbors = grid.getAdjacentCells(8, 8);
+
+            const nwNeighbor = neighbors.find((cell) => cell.x === 7 && cell.y === 7);
+            expect(nwNeighbor!.terrainType).toBe('Forest');
+        });
+
+        it('should handle neighbors with specific terrain for integration test', () => {
+            // Set up a pattern
+            grid.reshape(7, 7, 'Forest');
+            grid.reshape(8, 7, 'Forest');
+            grid.reshape(9, 7, 'Forest');
+            grid.reshape(7, 8, 'Water');
+            grid.reshape(8, 8, 'Meadow');
+            grid.reshape(9, 8, 'Mountain');
+
+            const neighbors = grid.getAdjacentCells(8, 8);
+
+            // Should have Forest (3), Water, Mountain, Meadow from around (8,8)
+            // Plus defaults from other directions
+            expect(neighbors.length).toBe(8); // Interior cell
+            expect(neighbors.some((cell) => cell.terrainType === 'Forest')).toBe(true);
+            expect(neighbors.some((cell) => cell.terrainType === 'Water')).toBe(true);
+            expect(neighbors.some((cell) => cell.terrainType === 'Mountain')).toBe(true);
+        });
+
+        it('should not wrap at boundaries (no wrapping)', () => {
+            const topLeftNeighbors = grid.getAdjacentCells(0, 0);
+            const topLeftCoords = topLeftNeighbors.map((cell) => ({ x: cell.x, y: cell.y }));
+
+            // Should not have (15, y) or (x, 15) from wrapping
+            expect(topLeftCoords).not.toContainEqual({ x: 15, y: 0 });
+            expect(topLeftCoords).not.toContainEqual({ x: 0, y: 15 });
+            expect(topLeftCoords).not.toContainEqual({ x: 15, y: 15 });
+        });
+    });
 });

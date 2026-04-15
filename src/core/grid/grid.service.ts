@@ -176,6 +176,47 @@ export class Grid extends EventEmitter {
     }
 
     /**
+     * Get all adjacent cells (neighbors) for a given coordinate.
+     * Returns empty array if coordinate is out-of-bounds.
+     * For valid coordinates, returns up to 8 neighbors depending on position:
+     * - Interior cells: 8 neighbors
+     * - Edge cells: 5 neighbors
+     * - Corner cells: 3 neighbors
+     * Out-of-bounds neighbors are omitted (no wrapping).
+     */
+    getAdjacentCells(x: number, y: number): Cell[] {
+        // Return empty if the input coordinate itself is out-of-bounds
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+            return [];
+        }
+
+        const neighbors: Cell[] = [];
+
+        // 8 directions: NW, N, NE, W, E, SW, S, SE
+        const directions = [
+            { dx: -1, dy: -1 }, // NW
+            { dx: 0, dy: -1 },  // N
+            { dx: 1, dy: -1 },  // NE
+            { dx: -1, dy: 0 },  // W
+            { dx: 1, dy: 0 },   // E
+            { dx: -1, dy: 1 },  // SW
+            { dx: 0, dy: 1 },   // S
+            { dx: 1, dy: 1 },   // SE
+        ];
+
+        for (const dir of directions) {
+            const nx = x + dir.dx;
+            const ny = y + dir.dy;
+            const neighbor = this.getCell(nx, ny);
+            if (neighbor) {
+                neighbors.push(neighbor);
+            }
+        }
+
+        return neighbors;
+    }
+
+    /**
      * Mark a cell as dirty (modified in current pulse).
      * Dirty tracking enables efficient synergy checks.
      */
