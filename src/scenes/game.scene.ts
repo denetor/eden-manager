@@ -3,7 +3,7 @@ import {
     Color,
     Engine,
     ExcaliburGraphicsContext, Font, FontUnit,
-    Keys, Label, Line,
+    Keys, Label,
     Rectangle,
     Scene,
     TileMap,
@@ -19,6 +19,7 @@ import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
 import {GridBackground} from "../ui/grid/grid-background";
+import {HighlightedCell} from "../ui/grid/highlighted-cell";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -34,7 +35,7 @@ export class GameScene extends Scene {
     private tileMap!: TileMap;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
-    private selectedCell: Actor;
+    private highlightedCell!: HighlightedCell;
     private selectedX: number = 0;
     private selectedY: number = 0;
     private lastPulseTime: number = 0;
@@ -47,7 +48,6 @@ export class GameScene extends Scene {
     constructor() {
         super();
         this.persistenceService = new PersistenceService();
-        this.selectedCell = undefined as any;
         this.feedbackMessageActor = undefined as any;
     }
 
@@ -77,7 +77,11 @@ export class GameScene extends Scene {
 
         this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
-        this.selectedCell = undefined as any;
+
+        // 4b. Create highlighted cell indicator
+        const highlightColor = new Color(255, 255, 96, 0.5);
+        this.highlightedCell = new HighlightedCell(this.tileSize, highlightColor);
+        this.add(this.highlightedCell);
 
         // 5. Subscribe to input events
         this.setupInputHandling(engine);
@@ -91,6 +95,12 @@ export class GameScene extends Scene {
             this.feedbackMessage = '';
         }
 
+        // Update highlighted cell position
+        this.highlightedCell.updateSelection(
+            this.selectedX !== undefined ? this.selectedX : undefined,
+            this.selectedY !== undefined ? this.selectedY : undefined
+        );
+
         // Handle continuous pulse triggering
         this.lastPulseTime += elapsedMs;
         if (this.lastPulseTime >= this.pulseInterval) {
@@ -100,9 +110,6 @@ export class GameScene extends Scene {
     }
 
     override onPostDraw(ctx: ExcaliburGraphicsContext): void {
-        // Draw grid background
-        this.drawGridBackground(ctx);
-
         // Draw feedback message if active
         if (this.feedbackMessage) {
             this.drawFeedbackMessage(ctx);
@@ -299,76 +306,6 @@ export class GameScene extends Scene {
     private showFeedback(message: string, duration: number = 1000): void {
         this.feedbackMessage = message;
         this.feedbackEndTime = Date.now() + duration;
-    }
-
-
-    /**
-     * Draws a grid background on the provided graphics context with horizontal and vertical lines
-     * representing cells. If a cell is selected, it highlights the selected cell with a border.
-     *
-     * @param {ExcaliburGraphicsContext} ctx - The graphics context where the grid will be drawn.
-     * @return {void} Does not return a value.
-     *
-     * TODO REFACTOR create classes for the 2 actors
-     * TODO REFACTOR remove from here, as no more canvas drawing is needed
-     */
-    private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
-        // Highlight selected cell with bright border
-        if (this.selectedX === undefined || this.selectedY === undefined) {
-            // remove selection if no cell is selected
-            if (this.selectedCell) {
-                this.selectedCell.kill();
-            }
-        } else {
-            const selectedScreenX = this.selectedX * this.tileSize;
-            const selectedScreenY = this.selectedY * this.tileSize;
-            if (this.selectedCell) {
-                // move selected cell actor, if existing
-                this.selectedCell.pos = vec(selectedScreenX, selectedScreenY);
-            } else {
-                // create new selectedCellActor
-                const highlightColor = new Color(255, 255, 96, 0.5);
-                this.selectedCell = new Actor();
-                this.selectedCell.anchor = vec(0, 0);
-                this.selectedCell.addChild(new Actor({
-                    anchor: vec(0, 0),
-                    graphic: new Line({
-                        start: vec(selectedScreenX, selectedScreenY),
-                        end: vec(selectedScreenX, selectedScreenY + this.tileSize),
-                        color: highlightColor,
-                        thickness: 2,
-                    }),
-                }));
-                this.selectedCell.addChild(new Actor({
-                    anchor: vec(0, 0),
-                    graphic: new Line({
-                        start: vec(selectedScreenX, selectedScreenY + this.tileSize),
-                        end: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
-                        color: highlightColor,
-                        thickness: 2,
-                    }),
-                }));
-                this.selectedCell.addChild(new Actor({
-                    anchor: vec(0, 0),
-                    graphic: new Line({
-                        start: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
-                        end: vec(selectedScreenX + this.tileSize, selectedScreenY),
-                        color: highlightColor,
-                        thickness: 2,
-                    }),
-                }));
-                this.selectedCell.addChild(new Actor({
-                    anchor: vec(0, 0),
-                    graphic: new Line({
-                        start: vec(selectedScreenX + this.tileSize, selectedScreenY),
-                        end: vec(selectedScreenX, selectedScreenY),
-                        color: highlightColor,
-                        thickness: 2,
-                    }),
-                }));
-                this.engine.add(this.selectedCell);
-            }
-        }
     }
 
 
