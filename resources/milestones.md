@@ -11,10 +11,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.1 — Grid Creation & Basic Structure
 **Goal:** Create the logical grid data structure.
 
-- [ ] `Grid` class: 16×16 2D array of Cell objects
-- [ ] `Cell` class: stores position (x, y), type (terrain), basic properties
-- [ ] Initialize with default terrain (all Meadow)
-- [ ] **Verification:** Log grid to console; print dimensions and sample cells
+- [x] `Grid` class: 16×16 2D array of Cell objects
+- [x] `Cell` class: stores position (x, y), type (terrain), basic properties
+- [x] Initialize with default terrain (all Meadow)
+- [x] **Verification:** Log grid to console; print dimensions and sample cells
 
 **Files to create:**
 - `src/core/Grid.ts` — Grid management

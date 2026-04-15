@@ -2,8 +2,8 @@ import {
     Actor,
     Color,
     Engine,
-    ExcaliburGraphicsContext,
-    Keys, Line,
+    ExcaliburGraphicsContext, Font, FontUnit,
+    Keys, Label, Line,
     Rectangle,
     Scene,
     TileMap,
@@ -40,6 +40,7 @@ export class GameScene extends Scene {
     private lastPulseTime: number = 0;
     private pulseInterval: number = 500; // ms between pulses
     private feedbackMessage: string = '';
+    private feedbackMessageActor: Actor;
     private feedbackEndTime: number = 0;
     private tileSize: number = 32;
 
@@ -48,6 +49,7 @@ export class GameScene extends Scene {
         this.persistenceService = new PersistenceService();
         this.cellsGrid = undefined as any;
         this.selectedCell = undefined as any;
+        this.feedbackMessageActor = undefined as any;
     }
 
     override onInitialize(engine: Engine): void {
@@ -79,6 +81,8 @@ export class GameScene extends Scene {
 
         // 5. Subscribe to input events
         this.setupInputHandling(engine);
+
+        this.feedbackMessageActor = undefined as any;
     }
 
     override onPreUpdate(engine: Engine, elapsedMs: number): void {
@@ -416,18 +420,36 @@ export class GameScene extends Scene {
     /**
      * Draw feedback message on screen.
      *
-     * TODO REFACTOR use an actor
+     * TODO REFACTOR use an actor in an external file
      */
     private drawFeedbackMessage(ctx: ExcaliburGraphicsContext): void {
-        // const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-        // if (!canvas) return;
-        // const canvasCtx = canvas.getContext('2d')!;
-        // canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        // canvasCtx.fillRect(50, 30, 300, 40);
-        //
-        // canvasCtx.fillStyle = '#FFFFFF';
-        // canvasCtx.font = 'bold 16px Arial';
-        // canvasCtx.fillText(this.feedbackMessage, 70, 60);
+        if (!this.feedbackMessageActor) {
+            this.feedbackMessageActor = new Actor({
+                anchor: vec(0,0),
+                pos: vec(50, 30),
+                width: 300,
+                height: 40,
+                color: new Color(0,0,0, 0.8),
+            });
+            this.feedbackMessageActor.addChild(new Label({
+                anchor: vec(0,0),
+                pos: vec(10, 10),
+                text: this.feedbackMessage,
+                font: new Font({
+                    family: 'Arial',
+                    size: 16,
+                    unit: FontUnit.Px,
+                }),
+                color: new Color(255, 255, 255),
+            }));
+            this.engine.add(this.feedbackMessageActor);
+            this.engine.clock.schedule(() => {
+                if (this.feedbackMessageActor) {
+                    this.feedbackMessageActor.kill();
+                    this.feedbackMessageActor = null as any;
+                }
+            }, 3000);
+        }
     }
 
 }
