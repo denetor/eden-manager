@@ -7,8 +7,12 @@ import {GameScene} from "./scenes/game.scene";
 const game = new Engine({
   width: 800, // Logical width and height in game pixels
   height: 600,
-  displayMode: DisplayMode.FitScreenAndFill, // Display mode tells excalibur how to fill the window
+  displayMode: DisplayMode.FitScreen,
+  // displayMode: DisplayMode.FitScreenAndFill, // Display mode tells excalibur how to fill the window
   pixelArt: true, // pixelArt will turn on the correct settings to render pixel art without jaggies or shimmering artifacts
+  antialiasing: false,
+  suppressHiDPIScaling: true,
+  suppressPlayButton: true,
   scenes: {
     start: new GameScene(),
   },

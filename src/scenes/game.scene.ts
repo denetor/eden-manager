@@ -291,33 +291,31 @@ export class GameScene extends Scene {
      * TileMap renders the base colors; this handles overlays.
      */
     private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
-        // const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-        // if (!canvas) return;
-        // const canvasCtx = canvas.getContext('2d');
-        // if (!canvasCtx) return;
-        //
-        // const grid = this.gameEngine.getGrid();
-        // const width = grid.getWidth();
-        // const height = grid.getHeight();
-        //
-        // // Draw grid lines
-        // canvasCtx.strokeStyle = '#777777';
-        // canvasCtx.lineWidth = 1;
-        // for (let y = 0; y < height; y++) {
-        //     for (let x = 0; x < width; x++) {
-        //         const screenX = x * this.tileSize;
-        //         const screenY = y * this.tileSize;
-        //         canvasCtx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
-        //     }
-        // }
-        //
-        // // Highlight selected cell with yellow border
-        // const selectedScreenX = this.selectedX * this.tileSize;
-        // const selectedScreenY = this.selectedY * this.tileSize;
-        // console.log({selectedScreenX, selectedScreenY});
-        // canvasCtx.strokeStyle = '#FFFF00';
-        // canvasCtx.lineWidth = 3;
-        // canvasCtx.strokeRect(selectedScreenX, selectedScreenY, this.tileSize, this.tileSize);
+        const grid = this.gameEngine.getGrid();
+        const width = grid.getWidth();
+        const height = grid.getHeight();
+
+        // Draw grid lines
+        const gridColor = new Color(192, 192, 192);
+        // ctx.drawLine(vec(0, 0), vec(width * this.tileSize, height * this.tileSize), gridColor, 1);
+        let currentY = 0;
+        let maxX = width * this.tileSize;
+        for (let y = 0; y <= height; y++) {
+            ctx.drawLine(vec(0, currentY), vec(maxX, currentY), gridColor, 2);
+            currentY += this.tileSize;
+        }
+        let currentX = 0;
+        let maxY = height * this.tileSize;
+        for (let x = 0; x <= width; x++) {
+            ctx.drawLine(vec(currentX, 0), vec(currentX, maxY), gridColor, 2);
+            currentX += this.tileSize;
+        }
+
+
+        // Highlight selected cell with bright border
+        const selectedScreenX = this.selectedX * this.tileSize;
+        const selectedScreenY = this.selectedY * this.tileSize;
+        ctx.drawRectangle(vec(selectedScreenX, selectedScreenY), this.tileSize, this.tileSize, new Color(255,255,255, 0), new Color(255,255,96), 2);
     }
 
     /**
