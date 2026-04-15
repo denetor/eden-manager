@@ -34,6 +34,7 @@ export class GameScene extends Scene {
     private tileMap!: TileMap;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
+    private cellsGrid: Actor;
     private selectedCell: Actor;
     private selectedX: number = 0;
     private selectedY: number = 0;
@@ -46,6 +47,8 @@ export class GameScene extends Scene {
     constructor() {
         super();
         this.persistenceService = new PersistenceService();
+        this.cellsGrid = undefined as any;
+        this.selectedCell = undefined as any;
     }
 
     override onInitialize(engine: Engine): void {
@@ -72,6 +75,7 @@ export class GameScene extends Scene {
 
         this.cellInfo = new CellInfo(grid, engine);
         this.add(this.cellInfo);
+        this.cellsGrid = undefined as any;
         this.selectedCell = undefined as any;
 
         // 5. Subscribe to input events
@@ -282,6 +286,7 @@ export class GameScene extends Scene {
         this.persistenceService.saveGrid(this.gameEngine.getGrid());
     }
 
+
     /**
      * Show a temporary feedback message.
      */
@@ -290,79 +295,118 @@ export class GameScene extends Scene {
         this.feedbackEndTime = Date.now() + duration;
     }
 
+
     /**
-     * Draw overlay effects on the grid (grid lines and selection highlight).
-     * TileMap renders the base colors; this handles overlays.
+     * Draws a grid background on the provided graphics context with horizontal and vertical lines
+     * representing cells. If a cell is selected, it highlights the selected cell with a border.
+     *
+     * @param {ExcaliburGraphicsContext} ctx - The graphics context where the grid will be drawn.
+     * @return {void} Does not return a value.
+     *
+     * TODO REFACTOR create classes for the 2 actors
+     * TODO REFACTOR remove from here, as no more canvas drawing is needed
      */
     private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
-        const grid = this.gameEngine.getGrid();
-        const width = grid.getWidth();
-        const height = grid.getHeight();
+        if (!this.cellsGrid) {
+            const grid = this.gameEngine.getGrid();
+            const width = grid.getWidth();
+            const height = grid.getHeight();
+            const gridColor = new Color(255, 255, 255, 0.25);
 
-        // Draw grid lines
-        const gridColor = new Color(192, 192, 192, 0.5);
-        ctx.drawLine(vec(0 + this.tileMap.pos.x, 0), vec(width * this.tileSize, height * this.tileSize), gridColor, 1);
-        let currentY = 0;
-        let maxX = width * this.tileSize;
-        for (let y = 0; y <= height; y++) {
-            ctx.drawLine(vec(0, currentY), vec(maxX, currentY), gridColor, 2);
-            currentY += this.tileSize;
-        }
-        let currentX = 0;
-        let maxY = height * this.tileSize;
-        for (let x = 0; x <= width; x++) {
-            ctx.drawLine(vec(currentX, 0), vec(currentX, maxY), gridColor, 2);
-            currentX += this.tileSize;
+            this.cellsGrid = new Actor({
+                anchor: vec(0,0),
+            });
+
+            // horizontal lines
+            let currentY = 0;
+            let maxX = width * this.tileSize;
+            for (let y = 0; y <= height; y++) {
+                this.cellsGrid.addChild(new Actor({
+                    anchor: vec(0,0),
+                    graphic: new Line({
+                        start: vec(0, currentY),
+                        end: vec(maxX, currentY),
+                        color: gridColor,
+                        thickness: 2,
+                    }),
+                }));
+                currentY += this.tileSize;
+            }
+
+            // vertical lines
+            let currentX = 0;
+            let maxY = height * this.tileSize;
+            for (let x = 0; x <= width; x++) {
+                this.cellsGrid.addChild(new Actor({
+                    anchor: vec(0,0),
+                    graphic: new Line({
+                        start: vec(currentX, 0),
+                        end: vec(currentX, maxY),
+                        color: gridColor,
+                        thickness: 2,
+                    }),
+                }));
+                currentX += this.tileSize;
+            }
+
+            this.engine.add(this.cellsGrid);
         }
 
         // Highlight selected cell with bright border
-         const selectedScreenX = this.selectedX * this.tileSize;
-        const selectedScreenY = this.selectedY * this.tileSize;
-        if (this.selectedCell) {
-            // move selected cell actor, if existing
-            this.selectedCell.pos = vec(selectedScreenX, selectedScreenY);
+        if (this.selectedX === undefined || this.selectedY === undefined) {
+            // remove selection if no cell is selected
+            if (this.selectedCell) {
+                this.selectedCell.kill();
+            }
         } else {
-            // create new selectedCellActor
-            const highlightColor = new Color(255, 255, 96, 0.5);
-            this.selectedCell = new Actor();
-            this.selectedCell.anchor = vec(0,0);
-            this.selectedCell.addChild(new Actor({
-                anchor: vec(0,0),
-                graphic: new Line({
-                    start: vec(selectedScreenX, selectedScreenY),
-                    end: vec(selectedScreenX, selectedScreenY + this.tileSize),
-                    color: highlightColor,
-                    thickness: 2,
-                }),
-            }));
-            this.selectedCell.addChild(new Actor({
-                anchor: vec(0,0),
-                graphic: new Line({
-                    start: vec(selectedScreenX, selectedScreenY + this.tileSize),
-                    end: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
-                    color: highlightColor,
-                    thickness: 2,
-                }),
-            }));
-            this.selectedCell.addChild(new Actor({
-                anchor: vec(0,0),
-                graphic: new Line({
-                    start: vec(selectedScreenX +  this.tileSize, selectedScreenY + this.tileSize),
-                    end: vec(selectedScreenX + this.tileSize, selectedScreenY),
-                    color: highlightColor,
-                    thickness: 2,
-                }),
-            }));
-            this.selectedCell.addChild(new Actor({
-                anchor: vec(0,0),
-                graphic: new Line({
-                    start: vec(selectedScreenX +  this.tileSize, selectedScreenY),
-                    end: vec(selectedScreenX, selectedScreenY),
-                    color: highlightColor,
-                    thickness: 2,
-                }),
-            }));
-            this.engine.add(this.selectedCell);
+            const selectedScreenX = this.selectedX * this.tileSize;
+            const selectedScreenY = this.selectedY * this.tileSize;
+            if (this.selectedCell) {
+                // move selected cell actor, if existing
+                this.selectedCell.pos = vec(selectedScreenX, selectedScreenY);
+            } else {
+                // create new selectedCellActor
+                const highlightColor = new Color(255, 255, 96, 0.5);
+                this.selectedCell = new Actor();
+                this.selectedCell.anchor = vec(0, 0);
+                this.selectedCell.addChild(new Actor({
+                    anchor: vec(0, 0),
+                    graphic: new Line({
+                        start: vec(selectedScreenX, selectedScreenY),
+                        end: vec(selectedScreenX, selectedScreenY + this.tileSize),
+                        color: highlightColor,
+                        thickness: 2,
+                    }),
+                }));
+                this.selectedCell.addChild(new Actor({
+                    anchor: vec(0, 0),
+                    graphic: new Line({
+                        start: vec(selectedScreenX, selectedScreenY + this.tileSize),
+                        end: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
+                        color: highlightColor,
+                        thickness: 2,
+                    }),
+                }));
+                this.selectedCell.addChild(new Actor({
+                    anchor: vec(0, 0),
+                    graphic: new Line({
+                        start: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
+                        end: vec(selectedScreenX + this.tileSize, selectedScreenY),
+                        color: highlightColor,
+                        thickness: 2,
+                    }),
+                }));
+                this.selectedCell.addChild(new Actor({
+                    anchor: vec(0, 0),
+                    graphic: new Line({
+                        start: vec(selectedScreenX + this.tileSize, selectedScreenY),
+                        end: vec(selectedScreenX, selectedScreenY),
+                        color: highlightColor,
+                        thickness: 2,
+                    }),
+                }));
+                this.engine.add(this.selectedCell);
+            }
         }
     }
 
