@@ -22,26 +22,26 @@ export class ManaDisplay extends Actor {
     }
 
     override onPostDraw(ctx: CanvasRenderingContext2D): void {
-        const current = this.mana.getCurrent();
-        const max = this.mana.getMax();
-        const percent = (current / max) * 100;
-
-        // Draw background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(this.pos.x, this.pos.y, 200, 30);
-
-        // Draw border
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.pos.x, this.pos.y, 200, 30);
-
-        // Draw mana bar (blue)
-        ctx.fillStyle = '#0077ff';
-        ctx.fillRect(this.pos.x + 4, this.pos.y + 4, (200 - 8) * (percent / 100), 22);
-
-        // Draw text
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '14px Arial';
-        ctx.fillText(`Mana: ${current}/${max}`, this.pos.x + 10, this.pos.y + 22);
+        // const current = this.mana.getCurrent();
+        // const max = this.mana.getMax();
+        // const percent = (current / max) * 100;
+        //
+        // // Draw background
+        // ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        // ctx.fillRect(this.pos.x, this.pos.y, 200, 30);
+        //
+        // // Draw border
+        // ctx.strokeStyle = '#ffffff';
+        // ctx.lineWidth = 2;
+        // ctx.strokeRect(this.pos.x, this.pos.y, 200, 30);
+        //
+        // // Draw mana bar (blue)
+        // ctx.fillStyle = '#0077ff';
+        // ctx.fillRect(this.pos.x + 4, this.pos.y + 4, (200 - 8) * (percent / 100), 22);
+        //
+        // // Draw text
+        // ctx.fillStyle = '#ffffff';
+        // ctx.font = '14px Arial';
+        // ctx.fillText(`Mana: ${current}/${max}`, this.pos.x + 10, this.pos.y + 22);
     }
 }

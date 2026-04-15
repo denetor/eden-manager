@@ -5,7 +5,7 @@ import {
     ExcaliburGraphicsContext,
     TileMap,
     Rectangle,
-    Color,
+    Color, vec,
 } from 'excalibur';
 import { Grid } from '../core/grid/grid.service';
 import { GameEngine } from '../core/game-engine.service';
@@ -160,6 +160,7 @@ export class GameScene extends Scene {
         engine.input.pointers.primary.on('down', (evt: any) => {
             const gridPos = this.screenToGridCoordinates(evt.coordinates.worldPos.x, evt.coordinates.worldPos.y);
             if (gridPos) {
+                console.log({gridPos});
                 this.selectCell(gridPos.x, gridPos.y);
                 this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
             }
@@ -173,6 +174,8 @@ export class GameScene extends Scene {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Water');
             } else if (evt.key === Keys.M) {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Mountain');
+            } else if (evt.key === Keys.Space) {
+                this.attemptUnveil(this.selectedX, this.selectedY)
             } else if (evt.key === Keys.Enter) {
                 this.triggerDivinePulse();
             } else if (evt.key === Keys.Tab) {
@@ -215,12 +218,14 @@ export class GameScene extends Scene {
 
         // Check cooldown
         if (!this.gameEngine.canReshape(x, y)) {
+            console.log('Cooling...');
             this.showFeedback('Cooling...');
             return;
         }
 
         // Check mana
         if (!mana.hasEnough(manaCost)) {
+            console.log('Insufficient mana');
             this.showFeedback('Insufficient mana');
             return;
         }
@@ -228,10 +233,42 @@ export class GameScene extends Scene {
         // Attempt reshape
         const success = this.gameEngine.reshape(x, y, terrainType as any, manaCost);
         if (success) {
+            console.log(`Reshaped to ${terrainType}`);
             this.showFeedback(`Reshaped to ${terrainType}`);
             this.selectCell(x, y);
         }
     }
+
+
+    /**
+     * Attempts to unveil a cell at the specified coordinates. Calls necessary game logic
+     * to determine if the cell can be unveiled based on mana availability. If successful,
+     * selects the unveiled cell.
+     *
+     * @param {number} x - The x-coordinate of the cell to unveil.
+     * @param {number} y - The y-coordinate of the cell to unveil.
+     * @return {void} This method does not return a value.
+     */
+    private attemptUnveil(x: number, y: number): void {
+        console.log(`attemptUnveil(${x}, ${y})`);
+        const mana = this.gameEngine.getMana();
+        const manaCost = 10; // Base cost per reshape
+
+        // Check mana
+        if (!mana.hasEnough(manaCost)) {
+            console.log('Insufficient mana');
+            this.showFeedback('Insufficient mana');
+            return;
+        }
+
+        // Attempt unveil
+        const success = this.gameEngine.unveil(x, y, manaCost);
+        if (success) {
+            this.selectCell(x, y);
+        }
+    }
+
+
 
     /**
      * Trigger a Divine Pulse turn.
@@ -254,48 +291,48 @@ export class GameScene extends Scene {
      * TileMap renders the base colors; this handles overlays.
      */
     private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
-        const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-        if (!canvas) return;
-        const canvasCtx = canvas.getContext('2d');
-        if (!canvasCtx) return;
-
-        const grid = this.gameEngine.getGrid();
-        const width = grid.getWidth();
-        const height = grid.getHeight();
-
-        // Draw grid lines
-        canvasCtx.strokeStyle = '#777777';
-        canvasCtx.lineWidth = 1;
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                const screenX = x * this.tileSize;
-                const screenY = y * this.tileSize;
-                canvasCtx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
-            }
-        }
-
-        // Highlight selected cell with yellow border
-        const selectedScreenX = this.selectedX * this.tileSize;
-        const selectedScreenY = this.selectedY * this.tileSize;
-        console.log({selectedScreenX, selectedScreenY});
-        canvasCtx.strokeStyle = '#FFFF00';
-        canvasCtx.lineWidth = 3;
-        canvasCtx.strokeRect(selectedScreenX, selectedScreenY, this.tileSize, this.tileSize);
+        // const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        // if (!canvas) return;
+        // const canvasCtx = canvas.getContext('2d');
+        // if (!canvasCtx) return;
+        //
+        // const grid = this.gameEngine.getGrid();
+        // const width = grid.getWidth();
+        // const height = grid.getHeight();
+        //
+        // // Draw grid lines
+        // canvasCtx.strokeStyle = '#777777';
+        // canvasCtx.lineWidth = 1;
+        // for (let y = 0; y < height; y++) {
+        //     for (let x = 0; x < width; x++) {
+        //         const screenX = x * this.tileSize;
+        //         const screenY = y * this.tileSize;
+        //         canvasCtx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
+        //     }
+        // }
+        //
+        // // Highlight selected cell with yellow border
+        // const selectedScreenX = this.selectedX * this.tileSize;
+        // const selectedScreenY = this.selectedY * this.tileSize;
+        // console.log({selectedScreenX, selectedScreenY});
+        // canvasCtx.strokeStyle = '#FFFF00';
+        // canvasCtx.lineWidth = 3;
+        // canvasCtx.strokeRect(selectedScreenX, selectedScreenY, this.tileSize, this.tileSize);
     }
 
     /**
      * Draw feedback message on screen.
      */
     private drawFeedbackMessage(ctx: ExcaliburGraphicsContext): void {
-        const canvas = document.querySelector('canvas') as HTMLCanvasElement;
-        if (!canvas) return;
-        const canvasCtx = canvas.getContext('2d')!;
-        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        canvasCtx.fillRect(50, 30, 300, 40);
-
-        canvasCtx.fillStyle = '#FFFFFF';
-        canvasCtx.font = 'bold 16px Arial';
-        canvasCtx.fillText(this.feedbackMessage, 70, 60);
+        // const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        // if (!canvas) return;
+        // const canvasCtx = canvas.getContext('2d')!;
+        // canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        // canvasCtx.fillRect(50, 30, 300, 40);
+        //
+        // canvasCtx.fillStyle = '#FFFFFF';
+        // canvasCtx.font = 'bold 16px Arial';
+        // canvasCtx.fillText(this.feedbackMessage, 70, 60);
     }
 
 }
