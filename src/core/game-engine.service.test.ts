@@ -435,4 +435,148 @@ describe('GameEngine', () => {
             expect(mana.getCurrent()).toBe(30);
         });
     });
+
+    describe('Cooldown mechanics', () => {
+        it('should allow reshape when no cooldown is active', () => {
+            const result = engine.reshape(5, 5, 'Forest', 10);
+            expect(result).toBe(true);
+            expect(engine.canReshape(5, 5)).toBe(false); // Cooldown now active
+        });
+
+        it('should block reshape while cooldown is active', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(mana.getCurrent()).toBe(40);
+
+            const result = engine.reshape(5, 5, 'Mountain', 10); // Immediate second reshape
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest'); // Cell unchanged
+            expect(mana.getCurrent()).toBe(40); // Mana unchanged
+        });
+
+        it('should allow reshape after cooldown expires', (done) => {
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(engine.canReshape(5, 5)).toBe(false);
+
+            // Wait 200ms for cooldown to expire
+            setTimeout(() => {
+                expect(engine.canReshape(5, 5)).toBe(true);
+                const result = engine.reshape(5, 5, 'Mountain', 10);
+                expect(result).toBe(true);
+                expect(grid.getCell(5, 5)?.terrainType).toBe('Mountain');
+                done();
+            }, 200);
+        });
+
+        it('should track independent cooldowns per cell', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            engine.reshape(6, 6, 'Mountain', 10);
+
+            expect(engine.canReshape(5, 5)).toBe(false);
+            expect(engine.canReshape(6, 6)).toBe(false);
+
+            // Both should be on cooldown (same time)
+            expect(engine.reshape(5, 5, 'Mountain', 10)).toBe(false);
+            expect(engine.reshape(6, 6, 'Forest', 10)).toBe(false);
+        });
+
+        it('should not reset cooldown on failed reshape (bounds check)', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            engine.reshape(-1, 5, 'Forest', 10); // Out of bounds
+
+            // Cooldown should still be active for (5,5)
+            expect(engine.canReshape(5, 5)).toBe(false);
+        });
+
+        it('should not reset cooldown on failed reshape (insufficient mana)', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            engine.reshape(5, 5, 'Mountain', 41); // Insufficient mana
+
+            // Cooldown should still be active (from first reshape)
+            expect(engine.canReshape(5, 5)).toBe(false);
+        });
+
+        it('should reset cooldown timer on successful reshape', (done) => {
+            engine.reshape(5, 5, 'Forest', 10);
+            const firstTime = Date.now();
+
+            setTimeout(() => {
+                // After 100ms, cooldown is still active
+                expect(engine.canReshape(5, 5)).toBe(false);
+
+                setTimeout(() => {
+                    // After another 100ms (200ms total from first reshape), cooldown should expire
+                    expect(engine.canReshape(5, 5)).toBe(true);
+                    engine.reshape(5, 5, 'Mountain', 10); // Reset timer
+                    const secondTime = Date.now();
+
+                    // Cooldown should be re-active from second reshape
+                    expect(engine.canReshape(5, 5)).toBe(false);
+                    expect(secondTime - firstTime).toBeGreaterThanOrEqual(200);
+
+                    done();
+                }, 105); // Total ~205ms
+            }, 100);
+        });
+
+        it('should handle stress test with rapid clicks on same cell', (done) => {
+            let successCount = 0;
+
+            // Simulate rapid clicks over 500ms
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const result = engine.reshape(5, 5, 'Forest', 1);
+                    if (result) successCount++;
+                }, i * 50); // Click every 50ms
+            }
+
+            setTimeout(() => {
+                // With 200ms cooldown and 50ms clicks, expect ~2-3 successful reshapes
+                // (first one succeeds immediately, then ~1 more every 200ms)
+                expect(successCount).toBeLessThanOrEqual(4);
+                expect(successCount).toBeGreaterThan(0);
+                done();
+            }, 550);
+        });
+
+        it('should handle cooldown for unveil and awaken independently', () => {
+            // Note: Current implementation only tracks reshape cooldown
+            // This test verifies that unveil/awaken don't affect reshape cooldown
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(engine.canReshape(5, 5)).toBe(false);
+
+            // unveil and awaken are separate operations (may have their own cooldowns in future)
+            const unveilResult = engine.unveil(7, 7, 10); // Different cell
+            expect(unveilResult).toBe(true);
+
+            // reshape cooldown on (5,5) should be unaffected
+            expect(engine.canReshape(5, 5)).toBe(false);
+        });
+
+        it('should allow reshape on different cell during cooldown', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(engine.canReshape(5, 5)).toBe(false);
+
+            // Different cell should not be on cooldown
+            expect(engine.canReshape(6, 6)).toBe(true);
+            const result = engine.reshape(6, 6, 'Mountain', 10);
+            expect(result).toBe(true);
+            expect(grid.getCell(6, 6)?.terrainType).toBe('Mountain');
+        });
+
+        it('should maintain state consistency during rapid clicks with mana checks', () => {
+            const initialMana = mana.getCurrent();
+            let successCount = 0;
+
+            // Simulate 5 rapid clicks on same cell (all should fail after first due to cooldown)
+            for (let i = 0; i < 5; i++) {
+                const result = engine.reshape(5, 5, 'Forest', 10);
+                if (result) successCount++;
+            }
+
+            // Only first reshape should succeed
+            expect(successCount).toBe(1);
+            expect(mana.getCurrent()).toBe(initialMana - 10);
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
+        });
+    });
 });

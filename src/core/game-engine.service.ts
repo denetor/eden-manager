@@ -18,6 +18,8 @@ export class GameEngine {
     private mana: ManaService;
     private humans: HumansService;
     private creatures: CreaturesService;
+    private reshapeLastTime: Map<string, number> = new Map();
+    private readonly RESHAPE_COOLDOWN_MS = 200;
 
     constructor(
         grid: Grid,
@@ -59,11 +61,29 @@ export class GameEngine {
     }
 
     /**
+     * Check if a cell can be reshaped (cooldown has expired).
+     * Returns true if 200ms has passed since last reshape on that cell.
+     */
+    canReshape(x: number, y: number): boolean {
+        const key = `${x},${y}`;
+        const lastTime = this.reshapeLastTime.get(key);
+        if (!lastTime) {
+            return true;
+        }
+        return Date.now() - lastTime >= this.RESHAPE_COOLDOWN_MS;
+    }
+
+    /**
      * Reshape a cell's terrain at a mana cost.
-     * Checks mana sufficiency, deducts cost, calls grid.reshape(), triggers pulse if successful.
-     * Returns true if successful, false if insufficient mana or out-of-bounds.
+     * Checks cooldown, mana sufficiency, deducts cost, calls grid.reshape().
+     * Returns true if successful, false if on cooldown, insufficient mana, or out-of-bounds.
      */
     reshape(x: number, y: number, terrainType: TerrainType, manaCost: number): boolean {
+        // Check cooldown
+        if (!this.canReshape(x, y)) {
+            return false;
+        }
+
         // Check bounds
         if (x < 0 || x >= this.grid.getWidth() || y < 0 || y >= this.grid.getHeight()) {
             return false;
@@ -80,8 +100,10 @@ export class GameEngine {
             return false;
         }
 
-        // Apply mutation (marks cell dirty)
+        // Apply mutation (marks cell dirty) and reset cooldown
         this.grid.reshape(x, y, terrainType);
+        const key = `${x},${y}`;
+        this.reshapeLastTime.set(key, Date.now());
         return true;
     }
 
