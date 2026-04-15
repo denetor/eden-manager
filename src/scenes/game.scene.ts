@@ -119,19 +119,24 @@ export class GameScene extends Scene {
                 const cell = grid.getCell(x, y)!;
                 const tile = this.tileMap.getTile(x, y)!;
 
-                // Determine color based on terrain type and veil state
-                let color = new Color(144, 238, 144); // Green for meadow (default)
-                if (cell.terrainType === 'Forest') {
-                    color = new Color(34, 139, 34);
-                } else if (cell.terrainType === 'Water') {
-                    color = new Color(30, 144, 255);
-                } else if (cell.terrainType === 'Mountain') {
-                    color = new Color(169, 169, 169);
-                }
-
+                let color: Color;
                 // Darken if veiled
                 if (cell.state === 'Veiled') {
                     color = new Color(128, 128, 128);
+                } else {
+                    switch (cell.terrainType) {
+                        case 'Forest':
+                            color = new Color(34, 139, 34);
+                            break;
+                        case 'Water':
+                            color = new Color(30, 144, 255);
+                            break;
+                        case 'Mountain':
+                            color = new Color(169, 169, 169);
+                            break;
+                        default:
+                            color = new Color(144, 238, 144); // Green for meadow (default)
+                    }
                 }
 
                 // Create a rectangle shape for the tile
@@ -147,12 +152,13 @@ export class GameScene extends Scene {
         }
     }
 
+
     /**
      * Setup input handling for mouse clicks and keyboard shortcuts.
      */
     private setupInputHandling(engine: Engine): void {
         engine.input.pointers.primary.on('down', (evt: any) => {
-            const gridPos = this.screenToGridCoordinates(evt.x, evt.y);
+            const gridPos = this.screenToGridCoordinates(evt.coordinates.worldPos.x, evt.coordinates.worldPos.y);
             if (gridPos) {
                 this.selectCell(gridPos.x, gridPos.y);
                 this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
@@ -258,7 +264,7 @@ export class GameScene extends Scene {
         const height = grid.getHeight();
 
         // Draw grid lines
-        canvasCtx.strokeStyle = '#333333';
+        canvasCtx.strokeStyle = '#777777';
         canvasCtx.lineWidth = 1;
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
@@ -271,6 +277,7 @@ export class GameScene extends Scene {
         // Highlight selected cell with yellow border
         const selectedScreenX = this.selectedX * this.tileSize;
         const selectedScreenY = this.selectedY * this.tileSize;
+        console.log({selectedScreenX, selectedScreenY});
         canvasCtx.strokeStyle = '#FFFF00';
         canvasCtx.lineWidth = 3;
         canvasCtx.strokeRect(selectedScreenX, selectedScreenY, this.tileSize, this.tileSize);
