@@ -1,0 +1,438 @@
+import { GameEngine } from './game-engine.service';
+import { Grid } from './grid/grid.service';
+import { SynergyEngine } from './synergy/synergy.service';
+import { ManaService } from './mana/mana.service';
+import { HumansService } from './humans/humans.service';
+import { CreaturesService } from './creatures/creatures.service';
+
+describe('GameEngine', () => {
+    let grid: Grid;
+    let synergy: SynergyEngine;
+    let mana: ManaService;
+    let humans: HumansService;
+    let creatures: CreaturesService;
+    let engine: GameEngine;
+
+    beforeEach(() => {
+        grid = new Grid(16, 16);
+        synergy = new SynergyEngine(grid);
+        mana = new ManaService(50, 100, 10);
+        humans = new HumansService(grid);
+        creatures = new CreaturesService(grid);
+        engine = new GameEngine(grid, synergy, mana, humans, creatures);
+    });
+
+    describe('Initialization', () => {
+        it('should initialize with all required systems', () => {
+            expect(engine.getGrid()).toBe(grid);
+            expect(engine.getSynergy()).toBe(synergy);
+            expect(engine.getMana()).toBe(mana);
+            expect(engine.getHumans()).toBe(humans);
+            expect(engine.getCreatures()).toBe(creatures);
+        });
+
+        it('should have correct initial mana state', () => {
+            expect(engine.getMana().getCurrent()).toBe(50);
+            expect(engine.getMana().getMax()).toBe(100);
+        });
+    });
+
+    describe('Mana System Integration', () => {
+        it('should track current and max mana', () => {
+            expect(mana.getCurrent()).toBe(50);
+            expect(mana.getMax()).toBe(100);
+        });
+
+        it('should check if enough mana available', () => {
+            expect(mana.hasEnough(30)).toBe(true);
+            expect(mana.hasEnough(50)).toBe(true);
+            expect(mana.hasEnough(51)).toBe(false);
+        });
+
+        it('should spend mana and return success/failure', () => {
+            expect(mana.spend(20)).toBe(true);
+            expect(mana.getCurrent()).toBe(30);
+            expect(mana.spend(31)).toBe(false);
+            expect(mana.getCurrent()).toBe(30);
+        });
+
+        it('should regenerate mana per pulse', () => {
+            mana.spend(20);
+            expect(mana.getCurrent()).toBe(30);
+            mana.regenerate();
+            expect(mana.getCurrent()).toBe(40);
+        });
+
+        it('should cap mana at maximum during regeneration', () => {
+            // Start with max-5
+            const manaWithHighStart = new ManaService(95, 100, 10);
+            manaWithHighStart.regenerate();
+            expect(manaWithHighStart.getCurrent()).toBe(100);
+        });
+    });
+
+    describe('Humans System Integration', () => {
+        it('should add humans to the world', () => {
+            humans.addHuman('h1', 5, 5);
+            expect(humans.getCount()).toBe(1);
+        });
+
+        it('should get all humans', () => {
+            humans.addHuman('h1', 5, 5);
+            humans.addHuman('h2', 8, 8);
+            const allHumans = humans.getHumans();
+            expect(allHumans).toHaveLength(2);
+            expect(allHumans[0].id).toBe('h1');
+            expect(allHumans[1].id).toBe('h2');
+        });
+
+        it('should update humans (placeholder in v0.1)', () => {
+            humans.addHuman('h1', 5, 5);
+            expect(() => humans.update()).not.toThrow();
+        });
+
+        it('should get humans state snapshot', () => {
+            humans.addHuman('h1', 5, 5);
+            const state = humans.getState();
+            expect(state.totalCount).toBe(1);
+            expect(state.population).toHaveLength(1);
+        });
+    });
+
+    describe('Creatures System Integration', () => {
+        it('should spawn creatures in the world', () => {
+            creatures.spawnCreature('c1', 'Phoenix', 5, 5, 100);
+            expect(creatures.getCount()).toBe(1);
+        });
+
+        it('should get all creatures', () => {
+            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
+            creatures.spawnCreature('c2', 'Dragon', 10, 10);
+            const allCreatures = creatures.getCreatures();
+            expect(allCreatures).toHaveLength(2);
+            expect(allCreatures[0].name).toBe('Phoenix');
+            expect(allCreatures[1].name).toBe('Dragon');
+        });
+
+        it('should update creatures (placeholder in v0.1)', () => {
+            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
+            expect(() => creatures.update()).not.toThrow();
+        });
+
+        it('should get creatures state snapshot', () => {
+            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
+            const state = creatures.getState();
+            expect(state.count).toBe(1);
+            expect(state.creatures).toHaveLength(1);
+        });
+    });
+
+    describe('reshape() mutation method', () => {
+        it('should reshape cell with sufficient mana', () => {
+            const result = engine.reshape(5, 5, 'Forest', 10);
+            expect(result).toBe(true);
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
+            expect(mana.getCurrent()).toBe(40);
+        });
+
+        it('should not reshape cell with insufficient mana', () => {
+            const result = engine.reshape(5, 5, 'Forest', 51);
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Meadow');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should not reshape out-of-bounds cell', () => {
+            const result = engine.reshape(-1, 5, 'Forest', 10);
+            expect(result).toBe(false);
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should mark cell dirty after reshape', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            const dirtyCells = grid.getDirtyCells();
+            expect(dirtyCells.some((d) => d.x === 5 && d.y === 5)).toBe(true);
+        });
+
+        it('should handle zero mana cost', () => {
+            const result = engine.reshape(5, 5, 'Forest', 0);
+            expect(result).toBe(true);
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should handle exact mana amount', () => {
+            const result = engine.reshape(5, 5, 'Forest', 50);
+            expect(result).toBe(true);
+            expect(mana.getCurrent()).toBe(0);
+        });
+    });
+
+    describe('unveil() mutation method', () => {
+        it('should unveil cell with sufficient mana', () => {
+            // Cells start Veiled by default
+            const result = engine.unveil(5, 5, 10);
+            expect(result).toBe(true);
+            expect(grid.getCell(5, 5)?.state).toBe('Dormant');
+            expect(mana.getCurrent()).toBe(40);
+        });
+
+        it('should not unveil non-Veiled cell', () => {
+            grid.unveil(5, 5); // Unveil manually first
+            const result = engine.unveil(5, 5, 10);
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.state).toBe('Dormant');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should not unveil with insufficient mana', () => {
+            const result = engine.unveil(5, 5, 51);
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.state).toBe('Veiled');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should not unveil out-of-bounds cell', () => {
+            const result = engine.unveil(16, 5, 10);
+            expect(result).toBe(false);
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should mark cell dirty after unveil', () => {
+            engine.unveil(5, 5, 10);
+            const dirtyCells = grid.getDirtyCells();
+            expect(dirtyCells.some((d) => d.x === 5 && d.y === 5)).toBe(true);
+        });
+    });
+
+    describe('awaken() mutation method', () => {
+        it('should awaken cell with sufficient mana', () => {
+            // Manually get cell to Dormant state first
+            grid.unveil(5, 5);
+            grid.clearDirty();
+
+            const result = engine.awaken(5, 5, 10);
+            expect(result).toBe(true);
+            expect(grid.getCell(5, 5)?.state).toBe('Active');
+            expect(mana.getCurrent()).toBe(40);
+        });
+
+        it('should not awaken Veiled cell', () => {
+            const result = engine.awaken(5, 5, 10);
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.state).toBe('Veiled');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should not awaken with insufficient mana', () => {
+            grid.unveil(5, 5);
+            grid.clearDirty();
+            const result = engine.awaken(5, 5, 51);
+            expect(result).toBe(false);
+            expect(grid.getCell(5, 5)?.state).toBe('Dormant');
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should not awaken out-of-bounds cell', () => {
+            const result = engine.awaken(16, 5, 10);
+            expect(result).toBe(false);
+            expect(mana.getCurrent()).toBe(50);
+        });
+
+        it('should mark cell dirty after awaken', () => {
+            grid.unveil(5, 5);
+            grid.clearDirty();
+            engine.awaken(5, 5, 10);
+            const dirtyCells = grid.getDirtyCells();
+            expect(dirtyCells.some((d) => d.x === 5 && d.y === 5)).toBe(true);
+        });
+    });
+
+    describe('divinePulse() orchestration', () => {
+        it('should execute pulse sequence: Synergy → Humans → Creatures → Mana → clearDirty', () => {
+            // Set up: Create state for testing sequence
+            const callSequence: string[] = [];
+
+            // Spy on methods to verify call order
+            const originalSynergyApply = synergy.apply.bind(synergy);
+            const originalHumansUpdate = humans.update.bind(humans);
+            const originalCreaturesUpdate = creatures.update.bind(creatures);
+            const originalManaRegenerate = mana.regenerate.bind(mana);
+
+            synergy.apply = jest.fn(() => {
+                callSequence.push('synergy');
+                originalSynergyApply();
+            });
+            humans.update = jest.fn(() => {
+                callSequence.push('humans');
+                originalHumansUpdate();
+            });
+            creatures.update = jest.fn(() => {
+                callSequence.push('creatures');
+                originalCreaturesUpdate();
+            });
+            mana.regenerate = jest.fn(() => {
+                callSequence.push('mana');
+                originalManaRegenerate();
+            });
+
+            // Mark dirty cells to verify clearDirty is called
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(grid.getDirtyCells().length).toBeGreaterThan(0);
+
+            // Execute pulse
+            engine.divinePulse();
+
+            // Verify call sequence
+            expect(callSequence).toEqual(['synergy', 'humans', 'creatures', 'mana']);
+            expect(synergy.apply).toHaveBeenCalledTimes(1);
+            expect(humans.update).toHaveBeenCalledTimes(1);
+            expect(creatures.update).toHaveBeenCalledTimes(1);
+            expect(mana.regenerate).toHaveBeenCalledTimes(1);
+
+            // Verify dirty flags were cleared
+            expect(grid.getDirtyCells()).toHaveLength(0);
+        });
+
+        it('should regenerate mana during pulse', () => {
+            mana.spend(20);
+            expect(mana.getCurrent()).toBe(30);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(40);
+        });
+
+        it('should clear dirty cells at end of pulse', () => {
+            engine.reshape(5, 5, 'Forest', 10);
+            expect(grid.getDirtyCells().length).toBeGreaterThan(0);
+
+            engine.divinePulse();
+
+            expect(grid.getDirtyCells()).toHaveLength(0);
+        });
+    });
+
+    describe('Integration: Full turn sequence', () => {
+        it('should complete reshape → divinePulse → synergy applies → dirty cleared', () => {
+            // Set up: Grid with synergy trigger
+            grid.reshape(8, 8, 'Water');
+            grid.reshape(8, 9, 'Meadow');
+            grid.clearDirty();
+
+            // Player action: reshape via GameEngine
+            const success = engine.reshape(8, 8, 'Water', 20);
+            expect(success).toBe(true);
+
+            // Verify Water+Meadow synergy rule will apply
+            expect(grid.getCell(8, 9)?.terrainType).toBe('Meadow');
+
+            // Execute Divine Pulse
+            engine.divinePulse();
+
+            // Verify synergy was applied
+            expect(grid.getCell(8, 9)?.terrainType).toBe('Fertile Plain');
+
+            // Verify dirty was cleared
+            expect(grid.getDirtyCells()).toHaveLength(0);
+        });
+
+        it('should handle multiple mutations in single turn', () => {
+            const r1 = engine.reshape(5, 5, 'Forest', 10);
+            const r2 = engine.reshape(6, 5, 'Forest', 10);
+            const r3 = engine.reshape(7, 5, 'Forest', 10);
+
+            expect(r1).toBe(true);
+            expect(r2).toBe(true);
+            expect(r3).toBe(true);
+            expect(mana.getCurrent()).toBe(20);
+
+            // Both cells are dirty
+            expect(grid.getDirtyCells().length).toBe(3);
+
+            // Pulse clears them
+            engine.divinePulse();
+            expect(grid.getDirtyCells()).toHaveLength(0);
+        });
+
+        it('should chain multiple pulses for synergy cascades', () => {
+            // Pulse 1: Create Water + Meadow adjacent
+            engine.reshape(5, 5, 'Water', 10);
+            engine.reshape(5, 6, 'Meadow', 10);
+            engine.divinePulse();
+
+            // Meadow should now be Fertile Plain
+            expect(grid.getCell(5, 6)?.terrainType).toBe('Fertile Plain');
+
+            // Pulse 2: No new changes
+            engine.divinePulse();
+            expect(grid.getDirtyCells()).toHaveLength(0);
+        });
+
+        it('should prevent mutations with insufficient mana in single turn', () => {
+            const costs = [40, 15, 10]; // Total 65, but only 50 available
+            const results: boolean[] = [];
+
+            results.push(engine.reshape(5, 5, 'Forest', costs[0])); // Success
+            results.push(engine.reshape(6, 5, 'Forest', costs[1])); // Success
+            results.push(engine.reshape(7, 5, 'Forest', costs[2])); // Fail (only 0 left)
+
+            expect(results).toEqual([true, true, false]);
+            expect(mana.getCurrent()).toBe(0);
+        });
+    });
+
+    describe('State consistency', () => {
+        it('should maintain consistent state after failed mutation', () => {
+            const initialMana = mana.getCurrent();
+            const initialTerrain = grid.getCell(5, 5)?.terrainType;
+
+            engine.reshape(5, 5, 'Forest', 51); // Should fail
+
+            expect(mana.getCurrent()).toBe(initialMana);
+            expect(grid.getCell(5, 5)?.terrainType).toBe(initialTerrain);
+        });
+
+        it('should maintain mana balance across operations', () => {
+            engine.reshape(5, 5, 'Forest', 20);
+            expect(mana.getCurrent()).toBe(30);
+
+            engine.divinePulse();
+            expect(mana.getCurrent()).toBe(40);
+
+            engine.reshape(6, 6, 'Mountain', 15);
+            expect(mana.getCurrent()).toBe(25);
+
+            engine.divinePulse();
+            expect(mana.getCurrent()).toBe(35);
+        });
+    });
+
+    describe('Edge cases', () => {
+        it('should handle pulse with no mutations', () => {
+            expect(grid.getDirtyCells()).toHaveLength(0);
+            expect(() => engine.divinePulse()).not.toThrow();
+            expect(mana.getCurrent()).toBe(60); // Regenerated
+        });
+
+        it('should handle pulse with only synergy effects', () => {
+            // Set up Forest cluster
+            grid.reshape(5, 5, 'Forest');
+            grid.reshape(4, 5, 'Forest');
+            grid.reshape(5, 4, 'Forest');
+            grid.reshape(6, 5, 'Forest');
+
+            engine.divinePulse();
+
+            // Forest at (5,5) should become Sacred Grove
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Sacred Grove');
+        });
+
+        it('should recover from boundary conditions', () => {
+            // Try to reshape corner
+            expect(engine.reshape(0, 0, 'Forest', 10)).toBe(true);
+            expect(engine.reshape(15, 15, 'Mountain', 10)).toBe(true);
+            expect(mana.getCurrent()).toBe(30);
+        });
+    });
+});
