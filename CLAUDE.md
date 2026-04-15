@@ -32,6 +32,7 @@ Detailed documentation for each milestone lies in `resources/milestones/` filder
 Each milestone detail folder contains:
 - `grill-me-out.md` with the decisions made during the grill-me interview
 - `prd.md` with the PRD specific for the version name
+- `plans/*.md` with  the implementation plans of the stories listed in the PRD
 
 ---
 
