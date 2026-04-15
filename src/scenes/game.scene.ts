@@ -1,13 +1,10 @@
 import {
-    Actor,
     Color,
     Engine,
-    ExcaliburGraphicsContext, Font, FontUnit,
-    Keys, Label,
+    Keys,
     Rectangle,
     Scene,
     TileMap,
-    vec,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
@@ -20,6 +17,7 @@ import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
 import {GridBackground} from "../ui/grid/grid-background";
 import {HighlightedCell} from "../ui/grid/highlighted-cell";
+import {FeedbackMessage} from "../ui/feedback-message";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -40,15 +38,11 @@ export class GameScene extends Scene {
     private selectedY: number = 0;
     private lastPulseTime: number = 0;
     private pulseInterval: number = 500; // ms between pulses
-    private feedbackMessage: string = '';
-    private feedbackMessageActor: Actor;
-    private feedbackEndTime: number = 0;
     private tileSize: number = 32;
 
     constructor() {
         super();
         this.persistenceService = new PersistenceService();
-        this.feedbackMessageActor = undefined as any;
     }
 
     override onInitialize(engine: Engine): void {
@@ -85,21 +79,11 @@ export class GameScene extends Scene {
 
         // 5. Subscribe to input events
         this.setupInputHandling(engine);
-
-        this.feedbackMessageActor = undefined as any;
     }
 
     override onPreUpdate(engine: Engine, elapsedMs: number): void {
-        // Update feedback message display
-        if (this.feedbackMessage && Date.now() > this.feedbackEndTime) {
-            this.feedbackMessage = '';
-        }
-
         // Update highlighted cell position
-        this.highlightedCell.updateSelection(
-            this.selectedX !== undefined ? this.selectedX : undefined,
-            this.selectedY !== undefined ? this.selectedY : undefined
-        );
+        this.highlightedCell.updateSelection(this.selectedX, this.selectedY);
 
         // Handle continuous pulse triggering
         this.lastPulseTime += elapsedMs;
@@ -108,14 +92,6 @@ export class GameScene extends Scene {
             this.lastPulseTime = 0;
         }
     }
-
-    override onPostDraw(ctx: ExcaliburGraphicsContext): void {
-        // Draw feedback message if active
-        if (this.feedbackMessage) {
-            this.drawFeedbackMessage(ctx);
-        }
-    }
-
 
     /**
      * Initialize TileMap from the Grid data.
@@ -303,45 +279,9 @@ export class GameScene extends Scene {
     /**
      * Show a temporary feedback message.
      */
-    private showFeedback(message: string, duration: number = 1000): void {
-        this.feedbackMessage = message;
-        this.feedbackEndTime = Date.now() + duration;
-    }
-
-
-    /**
-     * Draw feedback message on screen.
-     *
-     * TODO REFACTOR use an actor in an external file
-     */
-    private drawFeedbackMessage(ctx: ExcaliburGraphicsContext): void {
-        if (!this.feedbackMessageActor) {
-            this.feedbackMessageActor = new Actor({
-                anchor: vec(0,0),
-                pos: vec(50, 30),
-                width: 300,
-                height: 40,
-                color: new Color(0,0,0, 0.8),
-            });
-            this.feedbackMessageActor.addChild(new Label({
-                anchor: vec(0,0),
-                pos: vec(10, 10),
-                text: this.feedbackMessage,
-                font: new Font({
-                    family: 'Arial',
-                    size: 16,
-                    unit: FontUnit.Px,
-                }),
-                color: new Color(255, 255, 255),
-            }));
-            this.engine.add(this.feedbackMessageActor);
-            this.engine.clock.schedule(() => {
-                if (this.feedbackMessageActor) {
-                    this.feedbackMessageActor.kill();
-                    this.feedbackMessageActor = null as any;
-                }
-            }, 3000);
-        }
+    private showFeedback(message: string, duration: number = 3000): void {
+        const feedback = new FeedbackMessage(message, duration);
+        this.add(feedback);
     }
 
 }
