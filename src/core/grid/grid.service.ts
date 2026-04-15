@@ -241,4 +241,54 @@ export class Grid extends EventEmitter {
     clearDirty(): void {
         this.dirty.clear();
     }
+
+    /**
+     * Serialize the grid to a JSON-compatible object.
+     * Returns { width, height, cells: [...] } with deep copy of cells.
+     * This is pure serialization with no storage knowledge.
+     */
+    toJSON(): { width: number; height: number; cells: Cell[] } {
+        return {
+            width: this.width,
+            height: this.height,
+            cells: this.cells.map((cell) => ({ ...cell })),
+        };
+    }
+
+    /**
+     * Reconstruct a Grid from serialized JSON data.
+     * Creates new Grid instance with identical state to original.
+     * Returns null if data is invalid.
+     */
+    static fromJSON(data: {
+        width: number;
+        height: number;
+        cells: Cell[];
+    }): Grid | null {
+        // Validate input
+        if (
+            !data ||
+            typeof data.width !== 'number' ||
+            typeof data.height !== 'number' ||
+            !Array.isArray(data.cells)
+        ) {
+            return null;
+        }
+
+        // Create grid with loaded dimensions
+        const grid = new Grid(data.width, data.height);
+
+        // Restore cell states and terrain types
+        for (let i = 0; i < data.cells.length; i++) {
+            const loadedCell = data.cells[i];
+            const currentCell = grid.cells[i];
+
+            if (currentCell && loadedCell) {
+                currentCell.state = loadedCell.state;
+                currentCell.terrainType = loadedCell.terrainType;
+            }
+        }
+
+        return grid;
+    }
 }
