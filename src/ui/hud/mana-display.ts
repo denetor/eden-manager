@@ -1,4 +1,4 @@
-import {Actor, Color, Engine, Font, FontUnit, Label, vec} from 'excalibur';
+import {Actor, Color, Font, FontUnit, Label, vec} from 'excalibur';
 import {ManaService} from '../../core/mana/mana.service';
 
 /**
@@ -7,23 +7,21 @@ import {ManaService} from '../../core/mana/mana.service';
  */
 export class ManaDisplay extends Actor {
     private mana: ManaService;
-    private engine: Engine;
-    private manaBar: Actor;
-    private caption: Actor;
+    private readonly manaBar: Actor;
+    private readonly caption: Actor;
 
 
     // TODO REFACTOR use a component/system to update mana value
-    constructor(mana: ManaService, engine: Engine) {
+    constructor(mana: ManaService) {
         super({
             anchor: vec(0,0),
-            x: 20,
+            x: 16 * 32 + 16,
             y: 20,
             width: 200,
             height: 30,
             color: new Color(0,0,0, 0.7),
         });
         this.mana = mana;
-        this.engine = engine;
 
         this.manaBar = new Actor({
             anchor: vec(0,0),

@@ -1,4 +1,4 @@
-import { Actor, Engine, Vector } from 'excalibur';
+import {Actor, Color, Font, FontUnit, Label, vec} from 'excalibur';
 import { Grid } from '../../core/grid/grid.service';
 
 /**
@@ -7,20 +7,22 @@ import { Grid } from '../../core/grid/grid.service';
  */
 export class CellInfo extends Actor {
     private grid: Grid;
-    private engine: Engine;
     private selectedX: number = 0;
     private selectedY: number = 0;
 
-    constructor(grid: Grid, engine: Engine) {
+
+    // TODO REFACTOR display only when a cell is selected
+    // TODO REFACTOR use a system and component to update value
+    constructor(grid: Grid) {
         super({
-            x: 20,
+            anchor: vec(0,0),
+            x: grid.getWidth() * 32 + 16,
             y: 70,
             width: 300,
             height: 100,
-            color: undefined,
+            color: new Color(0,0,0, 0.7),
         });
         this.grid = grid;
-        this.engine = engine;
     }
 
     /**
@@ -29,38 +31,34 @@ export class CellInfo extends Actor {
     setSelectedCell(x: number, y: number): void {
         this.selectedX = x;
         this.selectedY = y;
-    }
 
-
-    // TODO REFACTOR draw as actor, not here
-    override onPostDraw(ctx: CanvasRenderingContext2D): void {
         const cell = this.grid.getCell(this.selectedX, this.selectedY);
-        if (!cell) {
-            return;
+        if (cell) {
+            const lines = [
+                `Cell: (${this.selectedX}, ${this.selectedY})`,
+                `Terrain: ${cell.terrainType}`,
+                `State: ${cell.state}`,
+                `Adjacent Cells: ${this.grid.getAdjacentCells(this.selectedX, this.selectedY).length}`,
+            ];
+            lines.forEach((line, index) => {
+                const lineActor = new Label({
+                    anchor: vec(0,0),
+                    pos: vec(10, 20 + index * 20),
+                    text: line,
+                    font: new Font({
+                        family: 'Arial',
+                        size: 12,
+                        unit: FontUnit.Px,
+                    }),
+                    color: new Color(255, 255, 255),
+                });
+                this.addChild(lineActor);
+            });
+        } else {
+            // remove all children of type Label when no cell is selected
+            for (let c of this.children) {
+                c.kill();
+            }
         }
-
-        // Draw background
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(this.pos.x, this.pos.y, 300, 100);
-
-        // Draw border
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.pos.x, this.pos.y, 300, 100);
-
-        // Draw text
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '12px Arial';
-
-        const lines = [
-            `Cell: (${this.selectedX}, ${this.selectedY})`,
-            `Terrain: ${cell.terrainType}`,
-            `State: ${cell.state}`,
-            `Adjacent Cells: ${this.grid.getAdjacentCells(this.selectedX, this.selectedY).length}`,
-        ];
-
-        lines.forEach((line, index) => {
-            ctx.fillText(line, this.pos.x + 10, this.pos.y + 20 + index * 20);
-        });
     }
 }

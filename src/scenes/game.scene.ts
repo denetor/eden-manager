@@ -69,10 +69,10 @@ export class GameScene extends Scene {
         this.add(this.tileMap);
 
         // 4. Create HUD displays
-        this.manaDisplay = new ManaDisplay(mana, engine);
+        this.manaDisplay = new ManaDisplay(mana);
         this.add(this.manaDisplay);
 
-        this.cellInfo = new CellInfo(grid, engine);
+        this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
         this.cellsGrid = undefined as any;
         this.selectedCell = undefined as any;
