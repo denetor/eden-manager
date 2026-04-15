@@ -1,21 +1,24 @@
 import {
-    Scene,
+    Actor,
+    Color,
+    CoordPlane,
     Engine,
-    Keys,
     ExcaliburGraphicsContext,
-    TileMap,
+    Keys, Line,
     Rectangle,
-    Color, vec,
+    Scene,
+    TileMap,
+    vec,
 } from 'excalibur';
-import { Grid } from '../core/grid/grid.service';
-import { GameEngine } from '../core/game-engine.service';
-import { SynergyEngine } from '../core/synergy/synergy.service';
-import { ManaService } from '../core/mana/mana.service';
-import { HumansService } from '../core/humans/humans.service';
-import { CreaturesService } from '../core/creatures/creatures.service';
-import { PersistenceService } from '../persistence/persistence.service';
-import { ManaDisplay } from '../ui/hud/mana-display';
-import { CellInfo } from '../ui/hud/cell-info';
+import {Grid} from '../core/grid/grid.service';
+import {GameEngine} from '../core/game-engine.service';
+import {SynergyEngine} from '../core/synergy/synergy.service';
+import {ManaService} from '../core/mana/mana.service';
+import {HumansService} from '../core/humans/humans.service';
+import {CreaturesService} from '../core/creatures/creatures.service';
+import {PersistenceService} from '../persistence/persistence.service';
+import {ManaDisplay} from '../ui/hud/mana-display';
+import {CellInfo} from '../ui/hud/cell-info';
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -31,6 +34,7 @@ export class GameScene extends Scene {
     private tileMap!: TileMap;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
+    private selectedCell: Actor;
     private selectedX: number = 0;
     private selectedY: number = 0;
     private lastPulseTime: number = 0;
@@ -68,6 +72,7 @@ export class GameScene extends Scene {
 
         this.cellInfo = new CellInfo(grid, engine);
         this.add(this.cellInfo);
+        this.selectedCell = undefined as any;
 
         // 5. Subscribe to input events
         this.setupInputHandling(engine);
@@ -160,7 +165,6 @@ export class GameScene extends Scene {
         engine.input.pointers.primary.on('down', (evt: any) => {
             const gridPos = this.screenToGridCoordinates(evt.coordinates.worldPos.x, evt.coordinates.worldPos.y);
             if (gridPos) {
-                console.log({gridPos});
                 this.selectCell(gridPos.x, gridPos.y);
                 this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
             }
@@ -296,8 +300,8 @@ export class GameScene extends Scene {
         const height = grid.getHeight();
 
         // Draw grid lines
-        const gridColor = new Color(192, 192, 192);
-        // ctx.drawLine(vec(0, 0), vec(width * this.tileSize, height * this.tileSize), gridColor, 1);
+        const gridColor = new Color(192, 192, 192, 0.5);
+        ctx.drawLine(vec(0 + this.tileMap.pos.x, 0), vec(width * this.tileSize, height * this.tileSize), gridColor, 1);
         let currentY = 0;
         let maxX = width * this.tileSize;
         for (let y = 0; y <= height; y++) {
@@ -311,11 +315,55 @@ export class GameScene extends Scene {
             currentX += this.tileSize;
         }
 
-
         // Highlight selected cell with bright border
-        const selectedScreenX = this.selectedX * this.tileSize;
+         const selectedScreenX = this.selectedX * this.tileSize;
         const selectedScreenY = this.selectedY * this.tileSize;
-        ctx.drawRectangle(vec(selectedScreenX, selectedScreenY), this.tileSize, this.tileSize, new Color(255,255,255, 0), new Color(255,255,96), 2);
+        if (this.selectedCell) {
+            // move selected cell actor, if existing
+            this.selectedCell.pos = vec(selectedScreenX, selectedScreenY);
+        } else {
+            // create new selectedCellActor
+            const highlightColor = new Color(255, 255, 96, 0.5);
+            this.selectedCell = new Actor();
+            this.selectedCell.anchor = vec(0,0);
+            this.selectedCell.addChild(new Actor({
+                anchor: vec(0,0),
+                graphic: new Line({
+                    start: vec(selectedScreenX, selectedScreenY),
+                    end: vec(selectedScreenX, selectedScreenY + this.tileSize),
+                    color: highlightColor,
+                    thickness: 2,
+                }),
+            }));
+            this.selectedCell.addChild(new Actor({
+                anchor: vec(0,0),
+                graphic: new Line({
+                    start: vec(selectedScreenX, selectedScreenY + this.tileSize),
+                    end: vec(selectedScreenX + this.tileSize, selectedScreenY + this.tileSize),
+                    color: highlightColor,
+                    thickness: 2,
+                }),
+            }));
+            this.selectedCell.addChild(new Actor({
+                anchor: vec(0,0),
+                graphic: new Line({
+                    start: vec(selectedScreenX +  this.tileSize, selectedScreenY + this.tileSize),
+                    end: vec(selectedScreenX + this.tileSize, selectedScreenY),
+                    color: highlightColor,
+                    thickness: 2,
+                }),
+            }));
+            this.selectedCell.addChild(new Actor({
+                anchor: vec(0,0),
+                graphic: new Line({
+                    start: vec(selectedScreenX +  this.tileSize, selectedScreenY),
+                    end: vec(selectedScreenX, selectedScreenY),
+                    color: highlightColor,
+                    thickness: 2,
+                }),
+            }));
+            this.engine.add(this.selectedCell);
+        }
     }
 
     /**
