@@ -11,6 +11,8 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use English language for comments, and symbol names like variables, classes, methods, etc...
 
 ## File naming
+
+- ALl files name are entirely lowercase, with a dash `-` to separate words
 - File containing services must end in `.service.ts`
 - File containing models must end in `.model.ts`
 - File containing actors must end in `.actor.ts`

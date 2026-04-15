@@ -20,6 +20,21 @@ content structure, and design philosophy.
 
 ---
 
+## Documentation
+### Game design document
+Game design document can be found at this file: `resources/gdd.md`
+
+### Milestones
+You can find the milestones list in the file `resources/milestones.md`.
+
+Detailed documentation for each milestone lies in `resources/milestones/` filder. Each milestone has a directory called after the milestone version number. Example: `resources/milestones/v0.1`.
+
+Each milestone detail folder contains:
+- `grill-me-out.md` with the decisions made during the grill-me interview
+- `prd.md` with the PRD specific for the version name
+
+---
+
 ## Common Development Commands
 
 ### Development
