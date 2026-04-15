@@ -1,9 +1,11 @@
 import {
     Scene,
     Engine,
-    Actor,
-    Vector,
     Keys,
+    ExcaliburGraphicsContext,
+    TileMap,
+    Rectangle,
+    Color,
 } from 'excalibur';
 import { Grid } from '../core/grid/grid.service';
 import { GameEngine } from '../core/game-engine.service';
@@ -26,6 +28,7 @@ import { CellInfo } from '../ui/hud/cell-info';
 export class GameScene extends Scene {
     private gameEngine!: GameEngine;
     private persistenceService: PersistenceService;
+    private tileMap!: TileMap;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
     private selectedX: number = 0;
@@ -51,18 +54,13 @@ export class GameScene extends Scene {
         // 2. Initialize all game systems
         const synergy = new SynergyEngine(grid);
         const mana = new ManaService(50, 100, 10);
-        const humans = new HumansService();
-        const creatures = new CreaturesService();
+        const humans = new HumansService(grid);
+        const creatures = new CreaturesService(grid);
         this.gameEngine = new GameEngine(grid, synergy, mana, humans, creatures);
 
-        // 3. Create background grid visualization
-        const background = new Actor({
-            x: 0,
-            y: 0,
-            width: grid.getWidth() * this.tileSize,
-            height: grid.getHeight() * this.tileSize,
-        });
-        this.add(background);
+        // 3. Create TileMap for rendering the grid
+        this.initializeTileMap(grid);
+        this.add(this.tileMap);
 
         // 4. Create HUD displays
         this.manaDisplay = new ManaDisplay(mana, engine);
@@ -89,7 +87,7 @@ export class GameScene extends Scene {
         }
     }
 
-    override onPostDraw(ctx: any, elapsedMs: number): void {
+    override onPostDraw(ctx: ExcaliburGraphicsContext): void {
         // Draw grid background
         this.drawGridBackground(ctx);
 
@@ -99,49 +97,52 @@ export class GameScene extends Scene {
         }
     }
 
+
     /**
-     * Draw a simple grid background with cells colored by state.
+     * Initialize TileMap from the Grid data.
      */
-    private drawGridBackground(ctx: CanvasRenderingContext2D): void {
-        const grid = this.gameEngine.getGrid();
+    private initializeTileMap(grid: Grid): void {
         const width = grid.getWidth();
         const height = grid.getHeight();
 
+        // Create TileMap with dimensions matching the grid
+        this.tileMap = new TileMap({
+            rows: height,
+            columns: width,
+            tileWidth: this.tileSize,
+            tileHeight: this.tileSize,
+        });
+
+        // Populate tiles with colored rectangles based on grid state
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const cell = grid.getCell(x, y)!;
-                const screenX = x * this.tileSize;
-                const screenY = y * this.tileSize;
+                const tile = this.tileMap.getTile(x, y)!;
 
-                // Color based on terrain
-                let color = '#90EE90'; // Green for meadow (default)
+                // Determine color based on terrain type and veil state
+                let color = new Color(144, 238, 144); // Green for meadow (default)
                 if (cell.terrainType === 'Forest') {
-                    color = '#228B22';
+                    color = new Color(34, 139, 34);
                 } else if (cell.terrainType === 'Water') {
-                    color = '#1E90FF';
+                    color = new Color(30, 144, 255);
                 } else if (cell.terrainType === 'Mountain') {
-                    color = '#A9A9A9';
+                    color = new Color(169, 169, 169);
                 }
 
                 // Darken if veiled
                 if (cell.state === 'Veiled') {
-                    color = '#808080';
+                    color = new Color(128, 128, 128);
                 }
 
-                ctx.fillStyle = color;
-                ctx.fillRect(screenX, screenY, this.tileSize, this.tileSize);
+                // Create a rectangle shape for the tile
+                const rect = new Rectangle({
+                    width: this.tileSize,
+                    height: this.tileSize,
+                    color: color,
+                });
 
-                // Draw grid lines
-                ctx.strokeStyle = '#333333';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
-
-                // Highlight selected cell
-                if (x === this.selectedX && y === this.selectedY) {
-                    ctx.strokeStyle = '#FFFF00';
-                    ctx.lineWidth = 3;
-                    ctx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
-                }
+                // Add the rectangle as a graphic to the tile
+                tile.addGraphic(rect);
             }
         }
     }
@@ -153,9 +154,7 @@ export class GameScene extends Scene {
         engine.input.pointers.primary.on('down', (evt: any) => {
             const gridPos = this.screenToGridCoordinates(evt.x, evt.y);
             if (gridPos) {
-                this.selectedX = gridPos.x;
-                this.selectedY = gridPos.y;
-                this.cellInfo.setSelectedCell(this.selectedX, this.selectedY);
+                this.selectCell(gridPos.x, gridPos.y);
                 this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
             }
         });
@@ -173,9 +172,18 @@ export class GameScene extends Scene {
             } else if (evt.key === Keys.Tab) {
                 // Tab to next cell
                 this.selectedX = (this.selectedX + 1) % this.gameEngine.getGrid().getWidth();
-                this.cellInfo.setSelectedCell(this.selectedX, this.selectedY);
+                this.selectCell(this.selectedX, this.selectedY);
             }
         });
+    }
+
+    /**
+     * Select a cell and update UI.
+     */
+    private selectCell(x: number, y: number): void {
+        this.selectedX = x;
+        this.selectedY = y;
+        this.cellInfo.setSelectedCell(x, y);
     }
 
     /**
@@ -215,7 +223,7 @@ export class GameScene extends Scene {
         const success = this.gameEngine.reshape(x, y, terrainType as any, manaCost);
         if (success) {
             this.showFeedback(`Reshaped to ${terrainType}`);
-            this.cellInfo.setSelectedCell(x, y);
+            this.selectCell(x, y);
         }
     }
 
@@ -236,14 +244,51 @@ export class GameScene extends Scene {
     }
 
     /**
+     * Draw overlay effects on the grid (grid lines and selection highlight).
+     * TileMap renders the base colors; this handles overlays.
+     */
+    private drawGridBackground(ctx: ExcaliburGraphicsContext): void {
+        const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+        const canvasCtx = canvas.getContext('2d');
+        if (!canvasCtx) return;
+
+        const grid = this.gameEngine.getGrid();
+        const width = grid.getWidth();
+        const height = grid.getHeight();
+
+        // Draw grid lines
+        canvasCtx.strokeStyle = '#333333';
+        canvasCtx.lineWidth = 1;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const screenX = x * this.tileSize;
+                const screenY = y * this.tileSize;
+                canvasCtx.strokeRect(screenX, screenY, this.tileSize, this.tileSize);
+            }
+        }
+
+        // Highlight selected cell with yellow border
+        const selectedScreenX = this.selectedX * this.tileSize;
+        const selectedScreenY = this.selectedY * this.tileSize;
+        canvasCtx.strokeStyle = '#FFFF00';
+        canvasCtx.lineWidth = 3;
+        canvasCtx.strokeRect(selectedScreenX, selectedScreenY, this.tileSize, this.tileSize);
+    }
+
+    /**
      * Draw feedback message on screen.
      */
-    private drawFeedbackMessage(ctx: any): void {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(50, 30, 300, 40);
+    private drawFeedbackMessage(ctx: ExcaliburGraphicsContext): void {
+        const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+        const canvasCtx = canvas.getContext('2d')!;
+        canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        canvasCtx.fillRect(50, 30, 300, 40);
 
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText(this.feedbackMessage, 70, 60);
+        canvasCtx.fillStyle = '#FFFFFF';
+        canvasCtx.font = 'bold 16px Arial';
+        canvasCtx.fillText(this.feedbackMessage, 70, 60);
     }
+
 }
