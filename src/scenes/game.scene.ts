@@ -81,6 +81,7 @@ export class GameScene extends Scene {
         this.setupInputHandling(engine);
     }
 
+
     override onPreUpdate(engine: Engine, elapsedMs: number): void {
         // Update highlighted cell position
         this.highlightedCell.updateSelection(this.selectedX, this.selectedY);
