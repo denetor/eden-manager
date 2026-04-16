@@ -5,6 +5,7 @@ import { ManaState } from './mana.model';
  */
 export class ManaService {
     private state: ManaState;
+    private listeners: Set<(state: ManaState) => void> = new Set();
 
     constructor(initialCurrent: number = 50, max: number = 100, regenerationPerPulse: number = 10) {
         this.state = {
@@ -50,6 +51,7 @@ export class ManaService {
             return false;
         }
         this.state.current -= cost;
+        this.notifyListeners();
         return true;
     }
 
@@ -58,6 +60,7 @@ export class ManaService {
      */
     regenerate(): void {
         this.state.current = Math.min(this.state.current + this.state.regenerationPerPulse, this.state.max);
+        this.notifyListeners();
     }
 
     /**
@@ -65,5 +68,19 @@ export class ManaService {
      */
     getState(): ManaState {
         return { ...this.state };
+    }
+
+    /**
+     * Register a listener for mana state changes
+     */
+    onManaChanged(callback: (state: ManaState) => void): void {
+        this.listeners.add(callback);
+    }
+
+    /**
+     * Notify all listeners of state change
+     */
+    private notifyListeners(): void {
+        this.listeners.forEach(cb => cb({ ...this.state }));
     }
 }

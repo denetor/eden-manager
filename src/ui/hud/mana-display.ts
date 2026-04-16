@@ -1,5 +1,6 @@
 import {Actor, Color, Font, FontUnit, Label, vec} from 'excalibur';
 import {ManaService} from '../../core/mana/mana.service';
+import {ManaState} from '../../core/mana/mana.model';
 
 /**
  * ManaDisplay shows current/max mana in the HUD.
@@ -8,10 +9,8 @@ import {ManaService} from '../../core/mana/mana.service';
 export class ManaDisplay extends Actor {
     private mana: ManaService;
     private readonly manaBar: Actor;
-    private readonly caption: Actor;
+    private readonly caption: Label;
 
-
-    // TODO REFACTOR use a component/system to update mana value
     constructor(mana: ManaService) {
         super({
             anchor: vec(0,0),
@@ -23,6 +22,7 @@ export class ManaDisplay extends Actor {
         });
         this.mana = mana;
 
+        // manaBar is initially at 100% Then it's scaled un updateDisplay()
         this.manaBar = new Actor({
             anchor: vec(0,0),
             pos: vec(4, 4),
@@ -44,5 +44,23 @@ export class ManaDisplay extends Actor {
 
         this.addChild(this.manaBar);
         this.addChild(this.caption);
+
+        // Register listener for mana state changes
+        this.mana.onManaChanged((state: ManaState) => {
+            this.updateDisplay(state);
+        });
+    }
+
+
+    /**
+     * Update mana bar width and caption text based on current mana state
+     */
+    private updateDisplay(state: ManaState): void {
+        // Update bar width proportional to current mana
+        // this.manaBar.width = (state.current / state.max) * this.manaBarMaxWidth;
+        this.manaBar.scale = vec((state.current / state.max), 1);
+
+        // Update caption text
+        this.caption.text = `Mana: ${state.current}/${state.max}`;
     }
 }
