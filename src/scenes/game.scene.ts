@@ -21,6 +21,7 @@ import {FeedbackMessage} from "../ui/feedback-message";
 import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
 import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
+import {CameraController} from '../input/camera-controller';
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -35,6 +36,7 @@ export class GameScene extends Scene {
     private persistenceService: PersistenceService;
     private isometricMap!: IsometricMap;
     private coordinateSystem!: CoordinateSystem;
+    private cameraController!: CameraController;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
     private highlightedCell!: HighlightedCell;
@@ -75,6 +77,9 @@ export class GameScene extends Scene {
         // 3b. Initialize CoordinateSystem
         this.coordinateSystem = new IsometricCoordinateSystem(this.isometricMap);
 
+        // 3c. Initialize CameraController (Phase 3: Camera Panning)
+        this.cameraController = new CameraController();
+
         // 4. Create HUD displays
         this.manaDisplay = new ManaDisplay(mana);
         this.add(this.manaDisplay);
@@ -92,6 +97,7 @@ export class GameScene extends Scene {
 
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
+        this.cameraController.setupInputHandling(engine);
 
         // 7. Verify CoordinateSystem transformations (Phase 2 verification)
         this.verifyCoordinateSystemTransforms();
@@ -99,6 +105,9 @@ export class GameScene extends Scene {
 
 
     override onPreUpdate(engine: Engine, elapsedMs: number): void {
+        // Update camera position and apply bounds validation (Phase 3: Camera Panning)
+        this.cameraController.update(engine);
+
         // Update highlighted cell position (uses CoordinateSystem internally)
         this.highlightedCell.updateSelection(this.selectedX, this.selectedY);
 
