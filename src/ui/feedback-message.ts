@@ -37,8 +37,10 @@ export class FeedbackMessage extends Actor {
         );
 
         // Schedule auto-destruction after duration
-        this.scene.engine.clock.schedule(() => {
-            this.kill();
-        }, this.duration);
+        if (this.scene && this.scene.engine) {
+            this.scene.engine.clock.schedule(() => {
+                this.kill();
+            }, this.duration);
+        }
     }
 }

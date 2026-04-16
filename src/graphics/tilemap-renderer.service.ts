@@ -68,7 +68,9 @@ export class TileMapRenderer implements ICellRenderer {
      * Calculate the tile ID for a cell based on terrain + state.
      * Formula: baseTerrainId + stateOffset
      * Example: Forest (2) + Dormant (200) = 202
+     * NOTE: Deprecated with IsometricMap. Kept for reference only.
      */
+    // @ts-ignore - Method kept for reference, not used with IsometricMap
     private calculateTileId(cell: Cell): number {
         const baseId = this.TERRAIN_TO_TILE_ID[cell.terrainType];
         const stateOffset = this.STATE_OFFSET[cell.state];
@@ -77,12 +79,13 @@ export class TileMapRenderer implements ICellRenderer {
 
     /**
      * Update the visual representation of a cell at (x, y).
-     * Calculates the tile ID and updates the TileMap.
+     * NOTE: This method is deprecated with IsometricMap integration.
+     * Use GameScene's direct tile graphics updates instead.
      */
     updateCell(x: number, y: number, cell: Cell): void {
-        const tileId = this.calculateTileId(cell);
-        // Excalibur TileMap uses setTile(x, y, tileId) to update a cell
-        this.tileMap.setTile(x, y, tileId);
+        // const tileId = this.calculateTileId(cell);
+        // Deprecated: TileMap has been replaced with IsometricMap
+        // See GameScene.subscribeToGridEvents() for new graphics update logic
     }
 
     /**

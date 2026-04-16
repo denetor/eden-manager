@@ -1,10 +1,10 @@
 import {
     Color,
     Engine,
+    IsometricMap,
     Keys,
     Rectangle,
     Scene,
-    TileMap,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
@@ -15,9 +15,11 @@ import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
-import {GridBackground} from "../ui/grid/grid-background";
 import {HighlightedCell} from "../ui/grid/highlighted-cell";
 import {FeedbackMessage} from "../ui/feedback-message";
+import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
+import {CoordinateSystem} from '../graphics/coordinate-system';
+import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -30,7 +32,8 @@ import {FeedbackMessage} from "../ui/feedback-message";
 export class GameScene extends Scene {
     private gameEngine!: GameEngine;
     private persistenceService: PersistenceService;
-    private tileMap!: TileMap;
+    private isometricMap!: IsometricMap;
+    private coordinateSystem!: CoordinateSystem;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
     private highlightedCell!: HighlightedCell;
@@ -38,7 +41,6 @@ export class GameScene extends Scene {
     private selectedY: number = 0;
     private lastPulseTime: number = 0;
     private pulseInterval: number = 500; // ms between pulses
-    private tileSize: number = 32;
 
     constructor() {
         super();
@@ -59,11 +61,18 @@ export class GameScene extends Scene {
         const creatures = new CreaturesService(grid);
         this.gameEngine = new GameEngine(grid, synergy, mana, humans, creatures);
 
-        // 3. Create TileMap for rendering the grid
-        this.initializeTileMap(grid);
-        this.add(this.tileMap);
-        const cellsGrid = new GridBackground({width: grid.getWidth(), height: grid.getHeight(), tileSize: this.tileSize});
-        this.add(cellsGrid);
+        // 3. Create IsometricMap for rendering the grid
+        this.isometricMap = new IsometricMap({
+            rows: grid.getHeight(),
+            columns: grid.getWidth(),
+            tileWidth: TILE_WIDTH,
+            tileHeight: TILE_HEIGHT,
+        });
+        this.initializeIsometricMapGraphics(grid);
+        this.add(this.isometricMap);
+
+        // 3b. Initialize CoordinateSystem
+        this.coordinateSystem = new IsometricCoordinateSystem(this.isometricMap);
 
         // 4. Create HUD displays
         this.manaDisplay = new ManaDisplay(mana);
@@ -74,16 +83,19 @@ export class GameScene extends Scene {
 
         // 4b. Create highlighted cell indicator
         const highlightColor = new Color(255, 255, 96, 0.5);
-        this.highlightedCell = new HighlightedCell(this.tileSize, highlightColor);
+        this.highlightedCell = new HighlightedCell(TILE_WIDTH, TILE_HEIGHT, highlightColor, this.coordinateSystem);
         this.add(this.highlightedCell);
 
-        // 5. Subscribe to input events
-        this.setupInputHandling(engine);
+        // 5. Subscribe to cell change events
+        this.subscribeToGridEvents(grid);
+
+        // 6. Subscribe to input events
+        this.setupInputHandling(engine, grid);
     }
 
 
     override onPreUpdate(engine: Engine, elapsedMs: number): void {
-        // Update highlighted cell position
+        // Update highlighted cell position (uses CoordinateSystem internally)
         this.highlightedCell.updateSelection(this.selectedX, this.selectedY);
 
         // Handle continuous pulse triggering
@@ -95,50 +107,24 @@ export class GameScene extends Scene {
     }
 
     /**
-     * Initialize TileMap from the Grid data.
+     * Initialize IsometricMap graphics from the Grid data.
+     * Creates colored Rectangle graphics for each tile based on terrain type and cell state.
      */
-    private initializeTileMap(grid: Grid): void {
+    private initializeIsometricMapGraphics(grid: Grid): void {
         const width = grid.getWidth();
         const height = grid.getHeight();
-
-        // Create TileMap with dimensions matching the grid
-        this.tileMap = new TileMap({
-            rows: height,
-            columns: width,
-            tileWidth: this.tileSize,
-            tileHeight: this.tileSize,
-        });
 
         // Populate tiles with colored rectangles based on grid state
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const cell = grid.getCell(x, y)!;
-                const tile = this.tileMap.getTile(x, y)!;
+                const tile = this.isometricMap.getTile(x, y)!;
+                const color = this.getCellColor(cell.state, cell.terrainType);
 
-                let color: Color;
-                // Darken if veiled
-                if (cell.state === 'Veiled') {
-                    color = new Color(128, 128, 128);
-                } else {
-                    switch (cell.terrainType) {
-                        case 'Forest':
-                            color = new Color(34, 139, 34);
-                            break;
-                        case 'Water':
-                            color = new Color(30, 144, 255);
-                            break;
-                        case 'Mountain':
-                            color = new Color(169, 169, 169);
-                            break;
-                        default:
-                            color = new Color(144, 238, 144); // Green for meadow (default)
-                    }
-                }
-
-                // Create a rectangle shape for the tile
+                // Create a rectangle shape for the isometric tile
                 const rect = new Rectangle({
-                    width: this.tileSize,
-                    height: this.tileSize,
+                    width: TILE_WIDTH,
+                    height: TILE_HEIGHT,
                     color: color,
                 });
 
@@ -148,16 +134,108 @@ export class GameScene extends Scene {
         }
     }
 
+    /**
+     * Calculate the color for a cell based on its state and terrain type.
+     * - Veiled: Gray (128, 128, 128) with 0.3 opacity
+     * - Dormant: Desaturated terrain color
+     * - Active: Full-saturation terrain color
+     */
+    private getCellColor(state: string, terrainType: string): Color {
+        // Veiled cells are always gray with reduced opacity
+        if (state === 'Veiled') {
+            return new Color(128, 128, 128, 0.3);
+        }
+
+        // Get base terrain color
+        let baseColor: Color;
+        switch (terrainType) {
+            case 'Forest':
+                baseColor = new Color(34, 139, 34);
+                break;
+            case 'Water':
+                baseColor = new Color(30, 144, 255);
+                break;
+            case 'Mountain':
+                baseColor = new Color(169, 169, 169);
+                break;
+            default:
+                baseColor = new Color(144, 238, 144); // Meadow (default)
+        }
+
+        // Apply state-based desaturation
+        if (state === 'Dormant') {
+            // Desaturate: reduce color brightness by ~40%
+            const factor = 0.6;
+            return new Color(
+                Math.floor(baseColor.r * factor),
+                Math.floor(baseColor.g * factor),
+                Math.floor(baseColor.b * factor),
+                1.0
+            );
+        }
+
+        // Active: full saturation
+        return new Color(baseColor.r, baseColor.g, baseColor.b, 1.0);
+    }
+
+
+    /**
+     * Subscribe to Grid events to update tile graphics when cell state changes.
+     */
+    private subscribeToGridEvents(grid: Grid): void {
+        grid.on('cellChanged', (payload: any) => {
+            const { x, y, cell } = payload;
+            const tile = this.isometricMap.getTile(x, y);
+            if (tile) {
+                // Clear old graphics and add new one with updated color
+                tile.clearGraphics();
+                const color = this.getCellColor(cell.state, cell.terrainType);
+                const rect = new Rectangle({
+                    width: TILE_WIDTH,
+                    height: TILE_HEIGHT,
+                    color: color,
+                });
+                tile.addGraphic(rect);
+                console.log(`Updated tile (${x}, ${y}): state=${cell.state}, terrain=${cell.terrainType}`);
+            }
+        });
+
+        grid.on('batchChanged', (payload: any) => {
+            const { changes } = payload;
+            for (const change of changes) {
+                const tile = this.isometricMap.getTile(change.x, change.y);
+                if (tile) {
+                    const cell = grid.getCell(change.x, change.y)!;
+                    tile.clearGraphics();
+                    const color = this.getCellColor(cell.state, cell.terrainType);
+                    const rect = new Rectangle({
+                        width: TILE_WIDTH,
+                        height: TILE_HEIGHT,
+                        color: color,
+                    });
+                    tile.addGraphic(rect);
+                }
+            }
+            console.log(`Batch updated ${changes.length} tiles`);
+        });
+    }
 
     /**
      * Setup input handling for mouse clicks and keyboard shortcuts.
      */
-    private setupInputHandling(engine: Engine): void {
+    private setupInputHandling(engine: Engine, grid: Grid): void {
+        // Click detection via primary pointer (mouse/touch)
+        // Excalibur applies camera transforms automatically, so worldPos is already in world space
         engine.input.pointers.primary.on('down', (evt: any) => {
-            const gridPos = this.screenToGridCoordinates(evt.coordinates.worldPos.x, evt.coordinates.worldPos.y);
-            if (gridPos) {
-                this.selectCell(gridPos.x, gridPos.y);
-                this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
+            // Get the world position from the pointer event
+            const worldPos = evt.coordinates.worldPos;
+            if (worldPos) {
+                const tile = this.isometricMap.getTileByPoint(worldPos);
+                if (tile) {
+                    this.selectCell(tile.x, tile.y);
+                    this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
+                    console.log(`Clicked tile at world (${worldPos.x}, ${worldPos.y}) → grid (${tile.x}, ${tile.y})`);
+                }
             }
         });
 
@@ -192,19 +270,6 @@ export class GameScene extends Scene {
     }
 
 
-    /**
-     * Convert screen coordinates to grid coordinates (accounting for tile size).
-     */
-    private screenToGridCoordinates(screenX: number, screenY: number): { x: number; y: number } | null {
-        const gridX = Math.floor(screenX / this.tileSize);
-        const gridY = Math.floor(screenY / this.tileSize);
-
-        const grid = this.gameEngine.getGrid();
-        if (gridX >= 0 && gridX < grid.getWidth() && gridY >= 0 && gridY < grid.getHeight()) {
-            return { x: gridX, y: gridY };
-        }
-        return null;
-    }
 
     /**
      * Attempt to reshape a cell with feedback.

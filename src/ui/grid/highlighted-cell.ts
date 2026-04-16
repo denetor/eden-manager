@@ -1,71 +1,86 @@
-import { Actor, Color, Line, vec } from 'excalibur';
+import { Actor, Color, Line, vec, Vector } from 'excalibur';
+import { CoordinateSystem } from '../../graphics/coordinate-system';
 
 /**
  * Highlights the selected cell with a colored border.
+ * Uses CoordinateSystem to position itself in the game world (isometric or orthogonal).
  * Initially invisible; becomes visible when a cell is selected via updateSelection().
  */
 export class HighlightedCell extends Actor {
-    private readonly tileSize: number;
+    private readonly tileWidth: number;
+    private readonly tileHeight: number;
     private readonly borderColor: Color;
+    private readonly coordinateSystem: CoordinateSystem;
 
-    constructor(tileSize: number, borderColor: Color) {
+    constructor(
+        tileWidth: number,
+        tileHeight: number,
+        borderColor: Color,
+        coordinateSystem: CoordinateSystem
+    ) {
         super();
         this.anchor = vec(0, 0);
-        this.tileSize = tileSize;
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
         this.borderColor = borderColor;
-        this.visible = false; // Initially hidden until a cell is selected
+        this.coordinateSystem = coordinateSystem;
+        this.active = false; // Initially inactive until a cell is selected
     }
 
     override onInitialize(): void {
-        // Create 4 line actors to form a rectangle border
-        const size = this.tileSize;
+        // Create 4 line actors to form a diamond border (isometric shape)
+        const w = this.tileWidth;
+        const h = this.tileHeight;
 
-        // LEFT vertical line
+        // For isometric tiles (diamond shape), create a diamond border
+        // Isometric diamond has corners at: top (w/2, 0), right (w, h/2), bottom (w/2, h), left (0, h/2)
+
+        // TOP-RIGHT diagonal line
         this.addChild(
             new Actor({
                 anchor: vec(0, 0),
                 graphic: new Line({
-                    start: vec(0, 0),
-                    end: vec(0, size),
+                    start: vec(w / 2, 0),
+                    end: vec(w, h / 2),
                     color: this.borderColor,
                     thickness: 2,
                 }),
             })
         );
 
-        // BOTTOM horizontal line
+        // BOTTOM-RIGHT diagonal line
         this.addChild(
             new Actor({
                 anchor: vec(0, 0),
                 graphic: new Line({
-                    start: vec(0, size),
-                    end: vec(size, size),
+                    start: vec(w, h / 2),
+                    end: vec(w / 2, h),
                     color: this.borderColor,
                     thickness: 2,
                 }),
             })
         );
 
-        // RIGHT vertical line
+        // BOTTOM-LEFT diagonal line
         this.addChild(
             new Actor({
                 anchor: vec(0, 0),
                 graphic: new Line({
-                    start: vec(size, size),
-                    end: vec(size, 0),
+                    start: vec(w / 2, h),
+                    end: vec(0, h / 2),
                     color: this.borderColor,
                     thickness: 2,
                 }),
             })
         );
 
-        // TOP horizontal line
+        // TOP-LEFT diagonal line
         this.addChild(
             new Actor({
                 anchor: vec(0, 0),
                 graphic: new Line({
-                    start: vec(size, 0),
-                    end: vec(0, 0),
+                    start: vec(0, h / 2),
+                    end: vec(w / 2, 0),
                     color: this.borderColor,
                     thickness: 2,
                 }),
@@ -75,6 +90,7 @@ export class HighlightedCell extends Actor {
 
     /**
      * Update the highlighted cell position based on grid coordinates.
+     * Uses CoordinateSystem to transform grid coordinates to world position.
      * If x or y is undefined, the highlight is hidden.
      *
      * @param x Grid x-coordinate (undefined to hide)
@@ -82,10 +98,14 @@ export class HighlightedCell extends Actor {
      */
     updateSelection(x: number | undefined, y: number | undefined): void {
         if (x === undefined || y === undefined) {
-            this.visible = false;
+            this.active = false;
         } else {
-            this.visible = true;
-            this.pos = vec(x * this.tileSize, y * this.tileSize);
+            this.active = true;
+            // Use CoordinateSystem to get world position for the grid coordinates
+            const tilePos = new Vector(x, y);
+            const worldPos = this.coordinateSystem.tileToWorld(tilePos);
+            this.pos = worldPos;
+            // console.log(`HighlightedCell at grid (${x}, ${y}) → world (${worldPos.x}, ${worldPos.y})`);
         }
     }
 }

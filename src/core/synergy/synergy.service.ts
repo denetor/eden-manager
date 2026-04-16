@@ -1,5 +1,4 @@
 import { Grid } from '../grid/grid.service';
-import { Cell, TerrainType } from '../grid/grid.model';
 
 /**
  * SynergyEngine applies cell-to-cell synergy transformations.

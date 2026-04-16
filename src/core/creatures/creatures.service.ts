@@ -8,7 +8,9 @@ import { Creature, CreaturesState } from './creatures.model';
 export class CreaturesService {
     private creatures: Creature[] = [];
 
-    constructor(private grid: Grid) {}
+    // Grid parameter kept for future use in creature movement logic
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(_grid: Grid) {}
 
     /**
      * Update creature positions and states during Divine Pulse.

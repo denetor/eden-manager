@@ -8,7 +8,9 @@ import { Human, HumansState } from './humans.model';
 export class HumansService {
     private humans: Human[] = [];
 
-    constructor(private grid: Grid) {}
+    // Grid parameter kept for future use in human settlement logic
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    constructor(_grid: Grid) {}
 
     /**
      * Update human positions and states during Divine Pulse.
