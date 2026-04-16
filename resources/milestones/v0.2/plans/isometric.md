@@ -34,7 +34,7 @@ Replace the current orthogonal TileMap with Excalibur's IsometricMap, establishi
 1. **Shared constants module** — Define TILE_WIDTH and TILE_HEIGHT as module-level exports for reuse across coordinate system, camera, and UI actors
 2. **CoordinateSystem interface** — Abstract method signatures for `worldToTile(worldPos)` and `tileToWorld(tilePos)` using Excalibur Vector objects
 3. **IsometricCoordinateSystem implementation** — Thin wrapper around IsometricMap's native coordinate transform methods; handles camera offset internally
-4. **IsometricMap initialization in GameScene** — Replace TileMap instantiation with IsometricMap(rows: 16, columns: 16, tileWidth: 32, tileHeight: 64)
+4. **IsometricMap initialization in GameScene** — Replace TileMap instantiation with IsometricMap(rows: 16, columns: 16, tileWidth: 64, tileHeight: 32)
 5. **Tile graphics population** — Create Rectangle graphics for each tile, colored by terrain type and cell state (Veiled/Dormant/Active)
 6. **Cell state color mapping** — Implement logic to assign colors based on cell state (gray for Veiled, desaturated for Dormant, full-color for Active)
 
@@ -42,7 +42,7 @@ By the end of this phase, the game world should render as an isometric grid with
 
 ### Acceptance criteria
 
-- [ ] Constants module exports TILE_WIDTH=32 and TILE_HEIGHT=64
+- [ ] Constants module exports TILE_WIDTH=64 and TILE_HEIGHT=32
 - [ ] CoordinateSystem interface defined with `worldToTile(Vector): Vector` and `tileToWorld(Vector): Vector` methods
 - [ ] IsometricCoordinateSystem created and delegates to IsometricMap's native methods
 - [ ] IsometricMap renders 16×16 grid in isometric projection (35° angle, tiles are diamonds)

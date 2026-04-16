@@ -5,6 +5,7 @@ import {
     Keys,
     Rectangle,
     Scene,
+    Vector,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
@@ -91,6 +92,9 @@ export class GameScene extends Scene {
 
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
+
+        // 7. Verify CoordinateSystem transformations (Phase 2 verification)
+        this.verifyCoordinateSystemTransforms();
     }
 
 
@@ -222,19 +226,30 @@ export class GameScene extends Scene {
 
     /**
      * Setup input handling for mouse clicks and keyboard shortcuts.
+     * Uses CoordinateSystem for isometric-aware coordinate transformation.
      */
     private setupInputHandling(engine: Engine, grid: Grid): void {
         // Click detection via primary pointer (mouse/touch)
         // Excalibur applies camera transforms automatically, so worldPos is already in world space
         engine.input.pointers.primary.on('down', (evt: any) => {
-            // Get the world position from the pointer event
+            // Get the world position from the pointer event (already in world space thanks to Excalibur)
             const worldPos = evt.coordinates.worldPos;
             if (worldPos) {
+                // Use IsometricMap's native method to get tile at world position
                 const tile = this.isometricMap.getTileByPoint(worldPos);
                 if (tile) {
+                    // Convert world coordinates to grid coordinates using CoordinateSystem abstraction
+                    const gridCoords = this.screenToGridCoordinates(worldPos);
+
                     this.selectCell(tile.x, tile.y);
                     this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
-                    console.log(`Clicked tile at world (${worldPos.x}, ${worldPos.y}) → grid (${tile.x}, ${tile.y})`);
+
+                    // Console verification: log both methods of getting grid coordinates
+                    console.log(
+                        `Click Detection → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
+                        `→ getTileByPoint: grid (${tile.x}, ${tile.y}) ` +
+                        `→ CoordinateSystem: grid (${gridCoords.x.toFixed(0)}, ${gridCoords.y.toFixed(0)})`
+                    );
                 }
             }
         });
@@ -261,12 +276,30 @@ export class GameScene extends Scene {
 
 
     /**
+     * Convert world position to grid coordinates using the CoordinateSystem abstraction.
+     * This method enables isometric-aware coordinate transformation and is the single
+     * point of conversion for all world-to-grid operations. Supports future perspective swaps.
+     *
+     * @param worldPos World position in pixels (result of camera transforms)
+     * @returns Grid coordinates (fractional, typically floored for cell lookup)
+     */
+    private screenToGridCoordinates(worldPos: any): any {
+        // Delegate to CoordinateSystem for abstraction and future perspective flexibility
+        return this.coordinateSystem.worldToTile(worldPos);
+    }
+
+    /**
      * Select a cell and update UI.
+     * Updates both internal state and visual indicators (CellInfo, HighlightedCell).
+     *
+     * @param x Grid x-coordinate
+     * @param y Grid y-coordinate
      */
     private selectCell(x: number, y: number): void {
         this.selectedX = x;
         this.selectedY = y;
         this.cellInfo.setSelectedCell(x, y);
+        console.log(`selectCell: Selected (${x}, ${y})`);
     }
 
 
@@ -348,6 +381,42 @@ export class GameScene extends Scene {
     private showFeedback(message: string, duration: number = 3000): void {
         const feedback = new FeedbackMessage(message, duration);
         this.add(feedback);
+    }
+
+
+    /**
+     * Verify CoordinateSystem transformations (Phase 2: Click Detection & Selection).
+     * Tests key grid cells to ensure worldToTile() and tileToWorld() work correctly.
+     * This is a Phase 2 acceptance criteria: console verification of coordinate transforms.
+     */
+    private verifyCoordinateSystemTransforms(): void {
+        console.log('=== Phase 2: CoordinateSystem Verification ===');
+
+        // Test key grid cells: corners and center
+        const testCells = [
+            { x: 0, y: 0, name: 'top-left corner' },
+            { x: 15, y: 0, name: 'top-right corner' },
+            { x: 0, y: 15, name: 'bottom-left corner' },
+            { x: 15, y: 15, name: 'bottom-right corner' },
+            { x: 7, y: 7, name: 'center cell' },
+        ];
+
+        for (const cell of testCells) {
+            // Test tileToWorld: grid → world
+            const tilePos = new Vector(cell.x, cell.y);
+            const worldPos = this.coordinateSystem.tileToWorld(tilePos);
+
+            // Test worldToTile: world → grid (should return close to original)
+            const backToTile = this.coordinateSystem.worldToTile(worldPos);
+
+            console.log(
+                `Cell ${cell.name} (${cell.x}, ${cell.y}): ` +
+                `tileToWorld → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
+                `→ worldToTile → grid (${backToTile.x.toFixed(2)}, ${backToTile.y.toFixed(2)})`
+            );
+        }
+
+        console.log('=== Phase 2 Verification Complete ===');
     }
 
 }

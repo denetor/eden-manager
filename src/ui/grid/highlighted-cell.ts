@@ -105,7 +105,7 @@ export class HighlightedCell extends Actor {
             const tilePos = new Vector(x, y);
             const worldPos = this.coordinateSystem.tileToWorld(tilePos);
             this.pos = worldPos;
-            // console.log(`HighlightedCell at grid (${x}, ${y}) → world (${worldPos.x}, ${worldPos.y})`);
+            console.log(`HighlightedCell: grid (${x}, ${y}) → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)})`);
         }
     }
 }
