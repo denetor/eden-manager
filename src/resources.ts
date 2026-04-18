@@ -3,6 +3,7 @@ import {Color, ImageSource, Loader} from "excalibur";
 // It is convenient to put your resources in one place
 export const Resources = {
   Sword: new ImageSource("./images/sword.png"), // Vite public/ directory serves the root images
+  tiles_selected: new ImageSource('./images/tiles/selected-cell.png'),
   tiles_veiled: new ImageSource('./images/tiles/floor-veiled-01.png'),
   tiles_empty: new ImageSource('./images/tiles/floor-empty-01.png'),
   tiles_meadow: new ImageSource('./images/tiles/floor-meadow-01.png'),
@@ -20,6 +21,7 @@ for (const res of Object.values(Resources)) {
 }
 
 export const Sprites = {
+  selected: Resources.tiles_selected.toSprite(),
   veiled: Resources.tiles_veiled.toSprite(),
   empty: Resources.tiles_empty.toSprite(),
   emptyDormant: Resources.tiles_empty.toSprite(),
@@ -32,12 +34,18 @@ export const Sprites = {
   forest: Resources.tiles_forest.toSprite(),
   forestDormant: Resources.tiles_forest.toSprite(),
 }
+Sprites.selected.opacity = 0.5;
 Sprites.veiled.opacity = 0.85;
 // darken dormant versions
-Sprites.emptyDormant.tint = new Color(64, 64, 64);
-Sprites.meadowDormant.tint = new Color(64, 64, 64);
-Sprites.waterDormant.tint = new Color(64, 64, 64);
-Sprites.mountainDormant.tint = new Color(64, 64, 64);
-Sprites.forestDormant.tint = new Color(64, 64, 64);
-
+// Sprites.emptyDormant.tint = new Color(64, 64, 64);
+// Sprites.meadowDormant.tint = new Color(64, 64, 64);
+// Sprites.waterDormant.tint = new Color(64, 64, 64);
+// Sprites.mountainDormant.tint = new Color(64, 64, 64);
+// Sprites.forestDormant.tint = new Color(64, 64, 64);
+// make transparent dormant versions
+Sprites.emptyDormant.opacity = 0.6;
+Sprites.meadowDormant.opacity = 0.6;
+Sprites.waterDormant.opacity = 0.6;
+Sprites.mountainDormant.opacity = 0.6;
+Sprites.forestDormant.opacity = 0.6;
 

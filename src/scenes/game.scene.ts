@@ -1,11 +1,10 @@
 import {
-    Circle,
     Color,
-    Engine, Graphic, ImageSource,
+    Engine, Graphic,
     IsometricMap,
     Keys,
     Rectangle,
-    Scene, Sprite,
+    Scene,
     Vector,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
@@ -23,7 +22,7 @@ import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
 import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
-import {Resources, Sprites} from "../resources";
+import {Sprites} from "../resources";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -41,7 +40,6 @@ export class GameScene extends Scene {
     private cameraController!: CameraController;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
-    private highlightedCell!: HighlightedCell;
     private selectedX: number = 0;
     private selectedY: number = 0;
     private lastPulseTime: number = 0;
@@ -89,11 +87,6 @@ export class GameScene extends Scene {
         this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
 
-        // 4b. Create highlighted cell indicator
-        const highlightColor = new Color(255, 255, 96, 0.5);
-        this.highlightedCell = new HighlightedCell(TILE_WIDTH, TILE_HEIGHT, highlightColor, this.coordinateSystem);
-        this.add(this.highlightedCell);
-
         // 5. Subscribe to cell change events
         this.subscribeToGridEvents(grid);
 
@@ -110,9 +103,6 @@ export class GameScene extends Scene {
         // Update camera position and apply bounds validation (Phase 3: Camera Panning)
         this.cameraController.update(engine);
 
-        // Update highlighted cell position (uses CoordinateSystem internally)
-        this.highlightedCell.updateSelection(this.selectedX, this.selectedY);
-
         // Handle continuous pulse triggering
         this.lastPulseTime += elapsedMs;
         if (this.lastPulseTime >= this.pulseInterval) {
@@ -125,18 +115,9 @@ export class GameScene extends Scene {
      * Initialize IsometricMap graphics from the Grid data.
      * Creates colored Rectangle graphics for each tile based on terrain type and cell state.
      */
-    private async initializeIsometricMapGraphics(grid: Grid): Promise<void> {
+    private initializeIsometricMapGraphics(grid: Grid): void {
         const width = grid.getWidth();
         const height = grid.getHeight();
-
-        // // add generic graphic
-        // // const floorImage = new ImageSource('../public/images/tiles/floor-empty-01.png');
-        // // await floorImage.load();
-        // // const floorSprite = floorImage.toSprite();
-        // const floorSprite = Resources.tiles_empty.toSprite();
-        // for (let tile of this.isometricMap.tiles) {
-        //     tile.addGraphic(floorSprite);
-        // }
 
         // Populate tiles with colored rectangles based on grid state
         for (let y = 0; y < height; y++) {
@@ -147,6 +128,9 @@ export class GameScene extends Scene {
                 tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
                 if (cell.state === 'Veiled') {
                     tile.addGraphic(Sprites.veiled);
+                }
+                if (x === this.selectedX && y === this.selectedY) {
+                    tile.addGraphic(Sprites.selected);
                 }
             }
         }
@@ -162,9 +146,6 @@ export class GameScene extends Scene {
      *
      */
     private getCellSprite(state: string, terrainType:string): Graphic {
-        // if (state === 'Veiled') {
-        //     return Sprites.veiled;
-        // }
         switch (terrainType) {
             case 'Forest':
                 return state === 'Dormant' ? Sprites.forestDormant : Sprites.forest;
@@ -181,55 +162,6 @@ export class GameScene extends Scene {
     }
 
 
-
-
-    /**
-     * Calculate the color for a cell based on its state and terrain type.
-     * - Veiled: Gray (128, 128, 128) with 0.3 opacity
-     * - Dormant: Desaturated terrain color
-     * - Active: Full-saturation terrain color
-     *
-     * @deprecated Use getCellSprite() instead
-     */
-    private getCellColor(state: string, terrainType: string): Color {
-        // Veiled cells are always gray with reduced opacity
-        if (state === 'Veiled') {
-            return new Color(128, 128, 128, 0.3);
-        }
-
-        // Get base terrain color
-        let baseColor: Color;
-        switch (terrainType) {
-            case 'Forest':
-                baseColor = new Color(34, 139, 34);
-                break;
-            case 'Water':
-                baseColor = new Color(30, 144, 255);
-                break;
-            case 'Mountain':
-                baseColor = new Color(169, 169, 169);
-                break;
-            default:
-                baseColor = new Color(144, 238, 144); // Meadow (default)
-        }
-
-        // Apply state-based desaturation
-        if (state === 'Dormant') {
-            // Desaturate: reduce color brightness by ~40%
-            const factor = 0.6;
-            return new Color(
-                Math.floor(baseColor.r * factor),
-                Math.floor(baseColor.g * factor),
-                Math.floor(baseColor.b * factor),
-                1.0
-            );
-        }
-
-        // Active: full saturation
-        return new Color(baseColor.r, baseColor.g, baseColor.b, 1.0);
-    }
-
-
     /**
      * Subscribe to Grid events to update tile graphics when cell state changes.
      */
@@ -240,13 +172,13 @@ export class GameScene extends Scene {
             if (tile) {
                 // Clear old graphics and add new one with updated color
                 tile.clearGraphics();
-                const color = this.getCellColor(cell.state, cell.terrainType);
-                const rect = new Rectangle({
-                    width: TILE_WIDTH,
-                    height: TILE_HEIGHT,
-                    color: color,
-                });
-                tile.addGraphic(rect);
+                tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+                if (cell.state === 'Veiled') {
+                    tile.addGraphic(Sprites.veiled);
+                }
+                if (x === this.selectedX && y === this.selectedY) {
+                    tile.addGraphic(Sprites.selected);
+                }
                 console.log(`Updated tile (${x}, ${y}): state=${cell.state}, terrain=${cell.terrainType}`);
             }
         });
@@ -258,13 +190,13 @@ export class GameScene extends Scene {
                 if (tile) {
                     const cell = grid.getCell(change.x, change.y)!;
                     tile.clearGraphics();
-                    const color = this.getCellColor(cell.state, cell.terrainType);
-                    const rect = new Rectangle({
-                        width: TILE_WIDTH,
-                        height: TILE_HEIGHT,
-                        color: color,
-                    });
-                    tile.addGraphic(rect);
+                    tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+                    if (cell.state === 'Veiled') {
+                        tile.addGraphic(Sprites.veiled);
+                    }
+                    if (change.x === this.selectedX && change.y === this.selectedY) {
+                        tile.addGraphic(Sprites.selected);
+                    }
                 }
             }
             console.log(`Batch updated ${changes.length} tiles`);
