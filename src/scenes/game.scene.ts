@@ -1,7 +1,7 @@
 import {
     Color,
     Engine, Graphic,
-    IsometricMap,
+    IsometricMap, IsometricTile,
     Keys,
     Rectangle,
     Scene,
@@ -23,6 +23,7 @@ import {CoordinateSystem} from '../graphics/coordinate-system';
 import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
 import {Sprites} from "../resources";
+import {Cell} from "../core/grid/grid.model";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -124,14 +125,7 @@ export class GameScene extends Scene {
             for (let x = 0; x < width; x++) {
                 const cell = grid.getCell(x, y)!;
                 const tile = this.isometricMap.getTile(x, y)!
-                // get cell sprite given cell.state and cell.terrainType
-                tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
-                if (cell.state === 'Veiled') {
-                    tile.addGraphic(Sprites.veiled);
-                }
-                if (x === this.selectedX && y === this.selectedY) {
-                    tile.addGraphic(Sprites.selected);
-                }
+                this.setComposedGraphic(tile, cell, (x === this.selectedX && y === this.selectedY));
             }
         }
     }
@@ -170,15 +164,7 @@ export class GameScene extends Scene {
             const { x, y, cell } = payload;
             const tile = this.isometricMap.getTile(x, y);
             if (tile) {
-                // Clear old graphics and add new one with updated color
-                tile.clearGraphics();
-                tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
-                if (cell.state === 'Veiled') {
-                    tile.addGraphic(Sprites.veiled);
-                }
-                if (x === this.selectedX && y === this.selectedY) {
-                    tile.addGraphic(Sprites.selected);
-                }
+                this.setComposedGraphic(tile, cell, (x === this.selectedX && y === this.selectedY));
                 console.log(`Updated tile (${x}, ${y}): state=${cell.state}, terrain=${cell.terrainType}`);
             }
         });
@@ -189,18 +175,32 @@ export class GameScene extends Scene {
                 const tile = this.isometricMap.getTile(change.x, change.y);
                 if (tile) {
                     const cell = grid.getCell(change.x, change.y)!;
-                    tile.clearGraphics();
-                    tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
-                    if (cell.state === 'Veiled') {
-                        tile.addGraphic(Sprites.veiled);
-                    }
-                    if (change.x === this.selectedX && change.y === this.selectedY) {
-                        tile.addGraphic(Sprites.selected);
-                    }
+                    this.setComposedGraphic(tile, cell, (change.x === this.selectedX && change.y === this.selectedY));
                 }
             }
             console.log(`Batch updated ${changes.length} tiles`);
         });
+    }
+
+
+    /**
+     * Configures and sets the composed graphic for a given isometric tile based on the state of a cell.
+     * Clears any existing graphics in the tile and adds graphics corresponding to the cell's state and selection status.
+     *
+     * @param {IsometricTile} tile - The isometric tile to update with new graphics.
+     * @param {Cell} cell - The cell containing state and terrain information used to determine the tile's graphics.
+     * @param {boolean} [selected] - Indicates whether the tile is selected and should display a selected graphic.
+     * @return {void} Does not return a value.
+     */
+    private setComposedGraphic(tile: IsometricTile, cell: Cell, selected?: boolean): void {
+        tile.clearGraphics();
+        tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+        if (cell.state === 'Veiled') {
+            tile.addGraphic(Sprites.veiled);
+        }
+        if (selected) {
+            tile.addGraphic(Sprites.selected);
+        }
     }
 
     /**
@@ -221,7 +221,7 @@ export class GameScene extends Scene {
                     const gridCoords = this.screenToGridCoordinates(worldPos);
 
                     this.selectCell(tile.x, tile.y);
-                    this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
+                    // this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
 
                     // Console verification: log both methods of getting grid coordinates
                     console.log(
@@ -275,10 +275,31 @@ export class GameScene extends Scene {
      * @param y Grid y-coordinate
      */
     private selectCell(x: number, y: number): void {
+        // remove selection sprite from currently selected cell
+        if (this.selectedX >= 0 && this.selectedY >= 0) {
+            const selectedTile = this.isometricMap.getTile(this.selectedX, this.selectedY);
+            if (selectedTile) {
+                const cell = this.gameEngine.getGrid().getCell(this.selectedX, this.selectedY);
+                if (cell) {
+                    this.setComposedGraphic(selectedTile, cell, false);
+                }
+            }
+        }
+        // set current cell as selected
         this.selectedX = x;
         this.selectedY = y;
         this.cellInfo.setSelectedCell(x, y);
-        console.log(`selectCell: Selected (${x}, ${y})`);
+        // add selection sprite to selected cell
+        if (this.selectedX >= 0 && this.selectedY >= 0) {
+            const selectedTile = this.isometricMap.getTile(this.selectedX, this.selectedY);
+            if (selectedTile) {
+                const cell = this.gameEngine.getGrid().getCell(this.selectedX, this.selectedY);
+                if (cell) {
+                    this.setComposedGraphic(selectedTile, cell, true);
+                }
+            }
+        }
+        // console.log(`selectCell: Selected (${x}, ${y})`);
     }
 
 
@@ -310,7 +331,6 @@ export class GameScene extends Scene {
         if (success) {
             console.log(`Reshaped to ${terrainType}`);
             this.showFeedback(`Reshaped to ${terrainType}`);
-            this.selectCell(x, y);
         }
     }
 
