@@ -1,10 +1,11 @@
 import {
+    Circle,
     Color,
-    Engine,
+    Engine, Graphic, ImageSource,
     IsometricMap,
     Keys,
     Rectangle,
-    Scene,
+    Scene, Sprite,
     Vector,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
@@ -22,6 +23,7 @@ import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
 import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
+import {Resources, Sprites} from "../resources";
 
 /**
  * GameScene orchestrates the complete game experience:
@@ -123,35 +125,68 @@ export class GameScene extends Scene {
      * Initialize IsometricMap graphics from the Grid data.
      * Creates colored Rectangle graphics for each tile based on terrain type and cell state.
      */
-    private initializeIsometricMapGraphics(grid: Grid): void {
+    private async initializeIsometricMapGraphics(grid: Grid): Promise<void> {
         const width = grid.getWidth();
         const height = grid.getHeight();
+
+        // // add generic graphic
+        // // const floorImage = new ImageSource('../public/images/tiles/floor-empty-01.png');
+        // // await floorImage.load();
+        // // const floorSprite = floorImage.toSprite();
+        // const floorSprite = Resources.tiles_empty.toSprite();
+        // for (let tile of this.isometricMap.tiles) {
+        //     tile.addGraphic(floorSprite);
+        // }
 
         // Populate tiles with colored rectangles based on grid state
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 const cell = grid.getCell(x, y)!;
-                const tile = this.isometricMap.getTile(x, y)!;
-                const color = this.getCellColor(cell.state, cell.terrainType);
-
-                // Create a rectangle shape for the isometric tile
-                const rect = new Rectangle({
-                    width: TILE_WIDTH,
-                    height: TILE_HEIGHT,
-                    color: color,
-                });
-
-                // Add the rectangle as a graphic to the tile
-                tile.addGraphic(rect);
+                const tile = this.isometricMap.getTile(x, y)!
+                // get cell sprite given cell.state and cell.terrainType
+                tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
             }
         }
     }
+
+
+    /**
+     * Retrieves the appropriate sprite for a cell based on its state and terrain type.
+     *
+     * @param {string} state - The state of the cell, typically representing its status or condition.
+     * @param {string} terrainType - The type of terrain the cell belongs to (e.g., 'Forest', 'Water', 'Mountain', 'Meadow').
+     * @return {Graphic} The sprite representing the specified terrain type.
+     *
+     */
+    private getCellSprite(state: string, terrainType:string): Graphic {
+        if (state === 'Veiled') {
+            // TODO return the grey fog sprite
+        }
+        switch (terrainType) {
+            case 'Forest':
+                return state === 'Dormant' ? Sprites.forestDormant : Sprites.forest;
+            case 'Water':
+                return Sprites.water;
+            case 'Mountain':
+                return Sprites.mountain;
+            case 'Meadow':
+                return Sprites.meadow;
+            // TODO add remaining terrain types
+            default:
+                return Sprites.empty;
+        }
+    }
+
+
+
 
     /**
      * Calculate the color for a cell based on its state and terrain type.
      * - Veiled: Gray (128, 128, 128) with 0.3 opacity
      * - Dormant: Desaturated terrain color
      * - Active: Full-saturation terrain color
+     *
+     * @deprecated Use getCellSprite() instead
      */
     private getCellColor(state: string, terrainType: string): Color {
         // Veiled cells are always gray with reduced opacity
