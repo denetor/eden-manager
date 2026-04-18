@@ -3,6 +3,7 @@ import {Color, ImageSource, Loader} from "excalibur";
 // It is convenient to put your resources in one place
 export const Resources = {
   Sword: new ImageSource("./images/sword.png"), // Vite public/ directory serves the root images
+  tiles_veiled: new ImageSource('./images/tiles/floor-veiled-01.png'),
   tiles_empty: new ImageSource('./images/tiles/floor-empty-01.png'),
   tiles_meadow: new ImageSource('./images/tiles/floor-meadow-01.png'),
   tiles_water: new ImageSource('./images/tiles/floor-water-01.png'),
@@ -19,6 +20,7 @@ for (const res of Object.values(Resources)) {
 }
 
 export const Sprites = {
+  veiled: Resources.tiles_veiled.toSprite(),
   empty: Resources.tiles_empty.toSprite(),
   emptyDormant: Resources.tiles_empty.toSprite(),
   meadow: Resources.tiles_meadow.toSprite(),
@@ -30,6 +32,7 @@ export const Sprites = {
   forest: Resources.tiles_forest.toSprite(),
   forestDormant: Resources.tiles_forest.toSprite(),
 }
+Sprites.veiled.opacity = 0.85;
 // darken dormant versions
 Sprites.emptyDormant.tint = new Color(64, 64, 64);
 Sprites.meadowDormant.tint = new Color(64, 64, 64);

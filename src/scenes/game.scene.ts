@@ -145,6 +145,9 @@ export class GameScene extends Scene {
                 const tile = this.isometricMap.getTile(x, y)!
                 // get cell sprite given cell.state and cell.terrainType
                 tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+                if (cell.state === 'Veiled') {
+                    tile.addGraphic(Sprites.veiled);
+                }
             }
         }
     }
@@ -159,9 +162,9 @@ export class GameScene extends Scene {
      *
      */
     private getCellSprite(state: string, terrainType:string): Graphic {
-        if (state === 'Veiled') {
-            // TODO return the grey fog sprite
-        }
+        // if (state === 'Veiled') {
+        //     return Sprites.veiled;
+        // }
         switch (terrainType) {
             case 'Forest':
                 return state === 'Dormant' ? Sprites.forestDormant : Sprites.forest;
