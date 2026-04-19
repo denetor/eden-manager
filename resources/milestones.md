@@ -27,27 +27,27 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.2 — Isometric Coordinate System & IsometricMap Integration
 **Goal:** Implement isometric rendering with coordinate abstraction and camera controls.
 
-- [ ] `CoordinateSystem` interface:
+- [x] `CoordinateSystem` interface:
   - `logicToScreen(logicX, logicY): {screenX, screenY}`
   - `screenToLogic(screenX, screenY): {logicX, logicY}`
-- [ ] `TopDownCoordinateSystem` implementation (current; simple multiplication)
-- [ ] `IsometricCoordinateSystem` implementation (full 35° isometric math):
+- [x] `TopDownCoordinateSystem` implementation (current; simple multiplication)
+- [] `IsometricCoordinateSystem` implementation (full 35° isometric math):
   - Tile size: 32px (base for both logic and screen)
   - Account for camera offset
-- [ ] Replace `TileMap` with `IsometricMap` from Excalibur API
+- [x] Replace `TileMap` with `IsometricMap` from Excalibur API
   - Configure with 16×16 grid, 32px tile dimensions
   - Populate tiles with colored rectangles (same color logic as before)
-- [ ] Update input handling:
+- [x] Update input handling:
   - `screenToGridCoordinates` now uses `IsometricCoordinateSystem.screenToLogic()`
   - Support click-to-select on isometric tiles
-- [ ] Camera & pan/zoom support:
+- [x] Camera & pan/zoom support:
   - Arrow keys or WASD to pan camera
   - Mouse wheel (or +/- keys) to zoom in/out (1.0x to 2.0x range)
   - Keep camera bounds within map
-- [ ] Update visual actors:
+- [x] Update visual actors:
   - `HighlightedCell` uses `IsometricCoordinateSystem` for positioning
   - `GridBackground` updated for isometric (or deferred to v0.8)
-- [ ] **Verification:** 
+- [x] **Verification:** 
   - Launch game; see 16×16 grid rendered in isometric (35° angle)
   - Click cells in isometric view; selection works correctly
   - Pan with arrow keys; zoom with +/- keys
@@ -72,10 +72,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.3 — Cell States (Veiled, Dormant, Active)
 **Goal:** Implement the three cell states and state transitions.
 
-- [ ] `CellState` enum: VEILED, DORMANT, ACTIVE
-- [ ] Add `state` property to Cell
-- [ ] Add `setState(newState)` method with validation
-- [ ] Track state-dependent properties (e.g., inert cells have reduced influence)
+- [x] `CellState` enum: VEILED, DORMANT, ACTIVE
+- [x] Add `state` property to Cell
+- [x] Add `setState(newState)` method with validation
+- [ ] Track state-dependent properties (e.g., inert cells have no influence)
 - [ ] **Verification:** Log cell state transitions to console; verify state changes are valid
 
 **Files to update:**

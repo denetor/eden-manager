@@ -26,7 +26,8 @@ export class SynergyEngine {
      */
     private checkSynergies(x: number, y: number): void {
         const cell = this.grid.getCell(x, y);
-        if (!cell) {
+        // ignore for inactive cells
+        if (!cell || cell.state !== 'Active') {
             return;
         }
 
@@ -56,7 +57,7 @@ export class SynergyEngine {
         // Check if this Meadow has a Water neighbor
         if (cell.terrainType === 'Meadow') {
             const neighbors = this.grid.getAdjacentCells(x, y);
-            if (neighbors.some((n) => n.terrainType === 'Water')) {
+            if (neighbors.some((n) => n.terrainType === 'Water' && n.state === 'Active')) {
                 this.grid.reshape(x, y, 'Fertile Plain');
             }
         }
@@ -65,7 +66,7 @@ export class SynergyEngine {
         if (cell.terrainType === 'Water') {
             const neighbors = this.grid.getAdjacentCells(x, y);
             for (const neighbor of neighbors) {
-                if (neighbor.terrainType === 'Meadow') {
+                if (neighbor.terrainType === 'Meadow' && neighbor.state === 'Active') {
                     this.grid.reshape(neighbor.x, neighbor.y, 'Fertile Plain');
                 }
             }
@@ -83,7 +84,7 @@ export class SynergyEngine {
         }
 
         const neighbors = this.grid.getAdjacentCells(x, y);
-        const forestNeighborCount = neighbors.filter((n) => n.terrainType === 'Forest').length;
+        const forestNeighborCount = neighbors.filter((n) => n.terrainType === 'Forest' && n.state === 'Active').length;
 
         if (forestNeighborCount >= 3) {
             this.grid.reshape(x, y, 'Sacred Grove');
@@ -103,7 +104,7 @@ export class SynergyEngine {
         // Check if this Meadow has a Mountain neighbor
         if (cell.terrainType === 'Meadow') {
             const neighbors = this.grid.getAdjacentCells(x, y);
-            if (neighbors.some((n) => n.terrainType === 'Mountain')) {
+            if (neighbors.some((n) => n.terrainType === 'Mountain' && n.state === 'Active')) {
                 this.grid.reshape(x, y, 'Foothill');
             }
         }
@@ -112,7 +113,7 @@ export class SynergyEngine {
         if (cell.terrainType === 'Mountain') {
             const neighbors = this.grid.getAdjacentCells(x, y);
             for (const neighbor of neighbors) {
-                if (neighbor.terrainType === 'Meadow') {
+                if (neighbor.terrainType === 'Meadow' && neighbor.state === 'Active') {
                     this.grid.reshape(neighbor.x, neighbor.y, 'Foothill');
                 }
             }
@@ -132,7 +133,7 @@ export class SynergyEngine {
         // Check if this Ruins has a Forest neighbor
         if (cell.terrainType === 'Ruins') {
             const neighbors = this.grid.getAdjacentCells(x, y);
-            if (neighbors.some((n) => n.terrainType === 'Forest')) {
+            if (neighbors.some((n) => n.terrainType === 'Forest' && n.state === 'Active')) {
                 this.grid.reshape(x, y, 'Hidden Temple');
             }
         }
@@ -141,7 +142,7 @@ export class SynergyEngine {
         if (cell.terrainType === 'Forest') {
             const neighbors = this.grid.getAdjacentCells(x, y);
             for (const neighbor of neighbors) {
-                if (neighbor.terrainType === 'Ruins') {
+                if (neighbor.terrainType === 'Ruins' && neighbor.state === 'Active') {
                     this.grid.reshape(neighbor.x, neighbor.y, 'Hidden Temple');
                 }
             }
