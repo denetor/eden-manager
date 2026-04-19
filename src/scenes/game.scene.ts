@@ -139,17 +139,26 @@ export class GameScene extends Scene {
      * @return {Graphic} The sprite representing the specified terrain type.
      *
      */
-    private getCellSprite(state: string, terrainType:string): Graphic {
+    private getCellSprite(state: string, terrainType: string): Graphic {
         switch (terrainType) {
             case 'Forest':
                 return state === 'Dormant' ? Sprites.forestDormant : Sprites.forest;
             case 'Water':
-                return Sprites.water;
+                return state === 'Dormant' ? Sprites.waterDormant : Sprites.water;
             case 'Mountain':
-                return Sprites.mountain;
+                return state === 'Dormant' ? Sprites.mountainDormant : Sprites.mountain;
             case 'Meadow':
-                return Sprites.meadow;
-            // TODO add remaining terrain types
+                return state === 'Dormant' ? Sprites.meadowDormant : Sprites.meadow;
+            case 'Ruins':
+                return state === 'Dormant' ? Sprites.ruinsDormant : Sprites.ruins;
+            case 'Fertile Plain':
+                return state === 'Dormant' ? Sprites.fertilePlainDormant : Sprites.fertilePlain;
+            case 'Sacred Grove':
+                return state === 'Dormant' ? Sprites.sacredGroveDormant : Sprites.sacredGrove;
+            case 'Foothill':
+                return state === 'Dormant' ? Sprites.footHillDormant : Sprites.footHill;
+            case 'Hidden Temple':
+                return state === 'Dormant' ? Sprites.hiddenTempleDormant : Sprites.hiddenTemple;
             default:
                 return Sprites.empty;
         }
