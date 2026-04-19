@@ -243,12 +243,14 @@ export class GameScene extends Scene {
 
         // Keyboard shortcuts
         engine.input.keyboard.on('press', (evt: any) => {
-            if (evt.key === Keys.R) {
+            if (evt.key === Keys.F) {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
             } else if (evt.key === Keys.W) {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Water');
             } else if (evt.key === Keys.M) {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Mountain');
+            } else if (evt.key === Keys.P) {
+                this.attemptReshape(this.selectedX, this.selectedY, 'Meadow');
             } else if (evt.key === Keys.Space) {
                 this.attemptUnveil(this.selectedX, this.selectedY)
             } else if (evt.key === Keys.Enter) {
