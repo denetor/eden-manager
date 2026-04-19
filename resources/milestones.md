@@ -313,10 +313,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.16 — Reshape Mechanic
 **Goal:** Allow terrain transformation; wire to scene input.
 
-- [ ] Reshape action (keyboard: R for Forest, W for Water, M for Mountain, etc.)
-- [ ] Press → spend 10 mana + change cell terrain type
-- [ ] Visual feedback: cell color changes in isometric view
-- [ ] **Verification:** Press R/W/M; see cell terrain change; mana decreases
+- [x] Reshape action (keyboard: R for Forest, W for Water, M for Mountain, etc.)
+- [x] Press → spend 10 mana + change cell terrain type
+- [x] Visual feedback: cell color changes in isometric view
+- [x] **Verification:** Press R/W/M; see cell terrain change; mana decreases
 
 **Files to update:**
 - `src/scenes/game.scene.ts` — Already has keyboard bindings for reshape
