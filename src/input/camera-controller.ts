@@ -124,16 +124,16 @@ export class CameraController {
 
         // Check keyboard state and accumulate pan velocity
         // Arrow keys
-        if (engine.input.keyboard.isHeld(Keys.ArrowUp) || engine.input.keyboard.isHeld(Keys.W)) {
+        if (engine.input.keyboard.isHeld(Keys.ArrowUp)) { // || engine.input.keyboard.isHeld(Keys.W)) {
             this.panY -= this.panSpeed;
         }
-        if (engine.input.keyboard.isHeld(Keys.ArrowDown) || engine.input.keyboard.isHeld(Keys.S)) {
+        if (engine.input.keyboard.isHeld(Keys.ArrowDown)) { // || engine.input.keyboard.isHeld(Keys.S)) {
             this.panY += this.panSpeed;
         }
-        if (engine.input.keyboard.isHeld(Keys.ArrowLeft) || engine.input.keyboard.isHeld(Keys.A)) {
+        if (engine.input.keyboard.isHeld(Keys.ArrowLeft)) { // || engine.input.keyboard.isHeld(Keys.A)) {
             this.panX -= this.panSpeed;
         }
-        if (engine.input.keyboard.isHeld(Keys.ArrowRight) || engine.input.keyboard.isHeld(Keys.D)) {
+        if (engine.input.keyboard.isHeld(Keys.ArrowRight)) { // || engine.input.keyboard.isHeld(Keys.D)) {
             this.panX += this.panSpeed;
         }
 

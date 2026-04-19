@@ -223,13 +223,11 @@ export class GameScene extends Scene {
                 // Use IsometricMap's native method to get tile at world position
                 const tile = this.isometricMap.getTileByPoint(worldPos);
                 if (tile) {
-                    // Convert world coordinates to grid coordinates using CoordinateSystem abstraction
-                    const gridCoords = this.screenToGridCoordinates(worldPos);
-
                     this.selectCell(tile.x, tile.y);
-                    // this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
 
                     // Console verification: log both methods of getting grid coordinates
+                    // Convert world coordinates to grid coordinates using CoordinateSystem abstraction
+                    // const gridCoords = this.screenToGridCoordinates(worldPos);
                     // console.log(
                     //     `Click Detection → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
                     //     `→ getTileByPoint: grid (${tile.x}, ${tile.y}) ` +

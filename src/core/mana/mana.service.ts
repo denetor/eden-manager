@@ -59,7 +59,6 @@ export class ManaService {
      * Regenerate mana at end of pulse
      */
     regenerate(): void {
-        console.log(`Regenerating ${this.state.regenerationPerPulse} mana points`);
         this.state.current = Math.min(this.state.current + this.state.regenerationPerPulse, this.state.max);
         this.notifyListeners();
     }
