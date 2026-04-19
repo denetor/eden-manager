@@ -253,6 +253,8 @@ export class GameScene extends Scene {
                 this.attemptReshape(this.selectedX, this.selectedY, 'Meadow');
             } else if (evt.key === Keys.Space) {
                 this.attemptUnveil(this.selectedX, this.selectedY)
+            } else if (evt.key === Keys.A) {
+                this.attemptActivate(this.selectedX, this.selectedY);
             } else if (evt.key === Keys.Enter) {
                 this.triggerDivinePulse();
             }
@@ -364,6 +366,33 @@ export class GameScene extends Scene {
 
         // Attempt unveil
         const success = this.gameEngine.unveil(x, y, manaCost);
+        if (success) {
+            this.selectCell(x, y);
+        }
+    }
+
+
+    /**
+     * Attempts to awaken a cell at the specified coordinates. Calls necessary game logic
+     * to determine if the cell can be awakened based on mana availability. If successful,
+     * selects the awakened cell.
+     *
+     * @param {number} x - The x-coordinate of the cell to awaken.
+     * @param {number} y - The y-coordinate of the cell to awaken.
+     * @return {void} This method does not return a value.
+     */
+    private attemptActivate(x: number, y: number): void {
+        const mana = this.gameEngine.getMana();
+        const manaCost = 10;
+
+        // Check mana
+        if (!mana.hasEnough(manaCost)) {
+            this.showFeedback('Insufficient mana');
+            return;
+        }
+
+        // Attempt awaken
+        const success = this.gameEngine.awaken(x, y, manaCost);
         if (success) {
             this.selectCell(x, y);
         }

@@ -295,9 +295,9 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.15 — Awaken Mechanic
 **Goal:** Implement Awaken action (activate dormant cells).
 
-- [ ] "Awaken" action (keyboard: 'A', or via scene)
-- [ ] Press → spend 10 mana + set cell state to ACTIVE
-- [ ] Visual feedback: cell becomes vivid, full color in isometric
+- [x] "Awaken" action (keyboard: 'A', or via scene)
+- [x] Press → spend 10 mana + set cell state to ACTIVE
+- [x] Visual feedback: cell becomes vivid, full color in isometric
 - [ ] Trigger synergy check on awakened cell (log to console)
 - [ ] **Verification:** Awaken a cell; see color change; check console for synergy matches; mana decrease
 
