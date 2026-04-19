@@ -7,7 +7,7 @@ export class ManaService {
     private state: ManaState;
     private listeners: Set<(state: ManaState) => void> = new Set();
 
-    constructor(initialCurrent: number = 50, max: number = 100, regenerationPerPulse: number = 10) {
+    constructor(initialCurrent: number = 50, max: number = 100, regenerationPerPulse: number = 1) {
         this.state = {
             current: Math.min(initialCurrent, max),
             max,

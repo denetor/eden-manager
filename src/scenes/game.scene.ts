@@ -41,7 +41,7 @@ export class GameScene extends Scene {
     private selectedX: number = -1;
     private selectedY: number = -1;
     private lastPulseTime: number = 0;
-    private pulseInterval: number = 500; // ms between pulses
+    private pulseInterval: number = 1000; // ms between pulses
 
     constructor() {
         super();

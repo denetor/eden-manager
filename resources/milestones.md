@@ -202,14 +202,14 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.10 — Selection Info Panel (Isometric)
 **Goal:** Display info about selected cell in UI (unchanged from old v0.9, now on isometric).
 
-- [ ] Create simple UI panel (top-left, 200×200px):
+- [x] Create simple UI panel (top-left, 200×200px):
   - Position (x, y)
   - Terrain type
   - Current state
   - Terrain properties (mana generation, fertility, etc.)
-- [ ] Update in real-time as selection changes
-- [ ] Use Excalibur's built-in text rendering or HTML overlay
-- [ ] **Verification:** Click different isometric cells; see info panel update
+- [x] Update in real-time as selection changes
+- [x] Use Excalibur's built-in text rendering or HTML overlay
+- [x] **Verification:** Click different isometric cells; see info panel update
 
 **Files to update:**
 - `src/ui/hud/cell-info.ts` — Already exists; verify it works with new CoordinateSystem
@@ -224,12 +224,12 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.11 — Mana Pool & Display
 **Goal:** Implement mana resource and display.
 
-- [ ] `ManaService` class: tracks current mana, max mana (likely already exists)
-- [ ] Initialize with 50 base mana, 100 max
-- [ ] `spend(amount)` method — deduct mana, prevent overspend
-- [ ] `add(amount)` method — gain mana, cap at max
-- [ ] Mana display widget (top-left): "Mana: 50/100"
-- [ ] **Verification:** Log mana spend/add to console; see widget update
+- [x] `ManaService` class: tracks current mana, max mana (likely already exists)
+- [x] Initialize with 50 base mana, 100 max
+- [x] `spend(amount)` method — deduct mana, prevent overspend
+- [x] `add(amount)` method — gain mana, cap at max
+- [x] Mana display widget (top-left): "Mana: 50/100"
+- [x] **Verification:** Log mana spend/add to console; see widget update
 
 **Files to update:**
 - `src/core/mana/mana.service.ts` — Already exists; verify interface
@@ -242,10 +242,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.12 — Test Mana Spending (Unveil Mock)
 **Goal:** Wire mana spending to an action (no actual effect yet, just deduction).
 
-- [ ] Add "Unveil" action to cell (keyboard: Space, or via scene.attemptUnveil)
-- [ ] Click/press → `manaService.spend(10)` if state is VEILED
-- [ ] Display feedback message if insufficient mana
-- [ ] **Verification:** Unveil repeatedly; see mana decrease; error message on insufficient mana
+- [x] Add "Unveil" action to cell (keyboard: Space, or via scene.attemptUnveil)
+- [x] Click/press → `manaService.spend(10)` if state is VEILED
+- [x] Display feedback message if insufficient mana
+- [x] **Verification:** Unveil repeatedly; see mana decrease; error message on insufficient mana
 
 **Files to update:**
 - `src/scenes/game.scene.ts` — Already has attemptUnveil method
@@ -258,12 +258,12 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.13 — Mana Regeneration (Divine Pulse Loop)
 **Goal:** Implement the pulse system; regenerate mana over time.
 
-- [ ] `GameEngine` class: manages pulse timing and game state (likely exists)
-- [ ] Emit `onPulse` event every ~500ms interval
-- [ ] On pulse: regenerate mana based on formula
-- [ ] Display pulse counter in console
-- [ ] Log each pulse to console with mana regen amount
-- [ ] **Verification:** Watch mana regenerate continuously; pulse events firing
+- [x] `GameEngine` class: manages pulse timing and game state (likely exists)
+- [x] Emit `onPulse` event every ~500ms interval
+- [x] On pulse: regenerate mana based on formula
+- [x] Display pulse counter in console (will not do)
+- [x] Log each pulse to console with mana regen amount (will not do)
+- [x] **Verification:** Watch mana regenerate continuously; pulse events firing
 
 **Files to update:**
 - `src/core/game-engine.service.ts` — Already exists; verify pulse logic
