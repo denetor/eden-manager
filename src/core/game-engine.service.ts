@@ -5,6 +5,18 @@ import { ManaService } from './mana/mana.service';
 import { HumansService } from './humans/humans.service';
 import { CreaturesService } from './creatures/creatures.service';
 
+const TERRAIN_MANA_YIELD: Record<TerrainType, number> = {
+    'Fertile Plain': 1,
+    'Sacred Grove':  2,
+    'Hidden Temple': 2,
+    'Meadow':        0,
+    'Forest':        0,
+    'Mountain':      0,
+    'Water':         0,
+    'Ruins':         0,
+    'Foothill':      0,
+};
+
 /**
  * GameEngine orchestrates all game systems and coordinates the Divine Pulse turn sequence.
  * Responsible for:
@@ -40,24 +52,29 @@ export class GameEngine {
      * 1. Apply synergies to dirty cells
      * 2. Update humans based on grid changes
      * 3. Update creatures based on grid changes
-     * 4. Regenerate mana
-     * 5. Clear dirty flags for next pulse
+     * 4. Collect mana from active terrain cells
+     * 5. Regenerate mana
+     * 6. Clear dirty flags for next pulse
      */
     divinePulse(): void {
-        // Step 1: Apply synergies
         this.synergy.apply();
-
-        // Step 2: Update humans
         this.humans.update();
-
-        // Step 3: Update creatures
         this.creatures.update();
-
-        // Step 4: Regenerate mana
+        this.collectTerrainMana();
         this.mana.regenerate();
-
-        // Step 5: Clear dirty flags
         this.grid.clearDirty();
+    }
+
+    private collectTerrainMana(): void {
+        let total = 0;
+        for (const cell of this.grid.getAllCells()) {
+            if (cell.state === 'Active') {
+                total += TERRAIN_MANA_YIELD[cell.terrainType];
+            }
+        }
+        if (total > 0) {
+            this.mana.add(total);
+        }
     }
 
     /**

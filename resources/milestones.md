@@ -349,12 +349,12 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.18 — Mana Generation from Terrain
 **Goal:** Certain terrains generate mana passively.
 
-- [ ] Terrain properties: `manaGeneration` (default 0 for most)
-- [ ] Fertile Plain = 2 mana/pulse, Sacred Grove = 3 mana/pulse, etc.
-- [ ] On each pulse: sum mana generation from all ACTIVE cells
-- [ ] Add to ManaService
-- [ ] Display in ManaDisplay (if already showing regen rate)
-- [ ] **Verification:** Create Fertile Plain cells; watch mana regen increase; console logs breakdown
+- [x] Terrain properties: `manaGeneration` (default 0 for most)
+- [x] Fertile Plain = 1 mana/pulse, Sacred Grove = 2 mana/pulse, etc.
+- [x] On each pulse: sum mana generation from all ACTIVE cells
+- [x] Add to ManaService
+- [x] Display in ManaDisplay (if already showing regen rate)
+- [x] **Verification:** Create Fertile Plain cells; watch mana regen increase; console logs breakdown
 
 **Files to update:**
 - `src/core/grid/grid.model.ts` — Add `manaGeneration` property

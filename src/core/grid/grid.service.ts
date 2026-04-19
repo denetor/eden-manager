@@ -102,6 +102,10 @@ export class Grid extends EventEmitter {
         return this.height;
     }
 
+    getAllCells(): Cell[] {
+        return [...this.cells];
+    }
+
     /**
      * Reshape a cell to a new terrain type.
      * Marks cell as dirty and emits cellChanged event.

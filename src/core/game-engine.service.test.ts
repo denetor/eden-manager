@@ -436,6 +436,101 @@ describe('GameEngine', () => {
         });
     });
 
+    describe('Terrain mana generation', () => {
+        it('should yield +1 mana for Active Fertile Plain each pulse', () => {
+            grid.unveil(3, 3);
+            grid.awaken(3, 3);
+            grid.reshape(3, 3, 'Fertile Plain');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(11); // 0 + 1 terrain + 10 regen
+        });
+
+        it('should yield +2 mana for Active Sacred Grove each pulse', () => {
+            grid.unveil(3, 3);
+            grid.awaken(3, 3);
+            grid.reshape(3, 3, 'Sacred Grove');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(12); // 0 + 2 terrain + 10 regen
+        });
+
+        it('should yield +2 mana for Active Hidden Temple each pulse', () => {
+            grid.unveil(3, 3);
+            grid.awaken(3, 3);
+            grid.reshape(3, 3, 'Hidden Temple');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(12); // 0 + 2 terrain + 10 regen
+        });
+
+        it('should not yield mana for Dormant mana terrain', () => {
+            grid.unveil(3, 3);
+            grid.reshape(3, 3, 'Sacred Grove');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(10); // 0 + 0 terrain + 10 regen
+        });
+
+        it('should not yield mana for Veiled mana terrain', () => {
+            grid.reshape(3, 3, 'Fertile Plain');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(10); // 0 + 0 terrain + 10 regen
+        });
+
+        it('should not yield mana for Active non-mana terrain', () => {
+            grid.unveil(3, 3);
+            grid.awaken(3, 3);
+            grid.reshape(3, 3, 'Forest');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(10); // 0 + 0 terrain + 10 regen
+        });
+
+        it('should sum mana from multiple active mana-yielding cells', () => {
+            grid.unveil(0, 0); grid.awaken(0, 0); grid.reshape(0, 0, 'Fertile Plain');
+            grid.unveil(1, 0); grid.awaken(1, 0); grid.reshape(1, 0, 'Fertile Plain');
+            grid.unveil(2, 0); grid.awaken(2, 0); grid.reshape(2, 0, 'Sacred Grove');
+            mana.spend(50);
+
+            engine.divinePulse();
+
+            expect(mana.getCurrent()).toBe(14); // 0 + 1 + 1 + 2 terrain + 10 regen
+        });
+
+        it('should cap mana at max when terrain yield would overflow', () => {
+            const highMana = new ManaService(95, 100, 10);
+            const highGrid = new Grid(16, 16);
+            const highEngine = new GameEngine(
+                highGrid,
+                new SynergyEngine(highGrid),
+                highMana,
+                new HumansService(highGrid),
+                new CreaturesService(highGrid)
+            );
+            highGrid.unveil(0, 0);
+            highGrid.awaken(0, 0);
+            highGrid.reshape(0, 0, 'Sacred Grove'); // +2 terrain + 10 regen = +12, capped at 100
+
+            highEngine.divinePulse();
+
+            expect(highMana.getCurrent()).toBe(100);
+        });
+    });
+
     describe('Cooldown mechanics', () => {
         it('should allow reshape when no cooldown is active', () => {
             const result = engine.reshape(5, 5, 'Forest', 10);

@@ -55,6 +55,11 @@ export class ManaService {
         return true;
     }
 
+    add(amount: number): void {
+        this.state.current = Math.min(this.state.current + amount, this.state.max);
+        this.notifyListeners();
+    }
+
     /**
      * Regenerate mana at end of pulse
      */
