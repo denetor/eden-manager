@@ -89,11 +89,11 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.4 — Adjacency Calculation
 **Goal:** Implement core adjacency engine (foundation for synergies).
 
-- [ ] `AdjacencyEngine` class: calculate neighbors (4-directional; 8-directional optional)
-- [ ] `getActiveNeighbors(cell)` method — return only ACTIVE neighbors
-- [ ] `getAdjacentTerrains(cell)` method — return terrain types nearby
-- [ ] Handle map boundaries gracefully (no wrapping)
-- [ ] **Verification:** Query neighbors of a cell in console; print surrounding terrain types
+- [x] `AdjacencyEngine` class: calculate neighbors (4-directional; 8-directional optional)
+- [x] `getActiveNeighbors(cell)` method — return only ACTIVE neighbors
+- [x] `getAdjacentTerrains(cell)` method — return terrain types nearby
+- [x] Handle map boundaries gracefully (no wrapping)
+- [x] **Verification:** Query neighbors of a cell in console; print surrounding terrain types
 
 **Files to create:**
 - `src/core/adjacency/adjacency.service.ts` — Adjacency logic
@@ -108,11 +108,11 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.5 — Synergy System (Resonance)
 **Goal:** Define and calculate cell synergies (no triggering yet, just calculation).
 
-- [ ] `SynergyEngine` class: match adjacency patterns against synergy table
-- [ ] `checkSynergies(cell)` method — return matching synergies for a cell
-- [ ] Synergy data structure: pattern matcher + result (terrain transform, mana bonus)
-- [ ] Implement 3–5 core synergies (e.g., Water + Meadow → Fertile Plain)
-- [ ] **Verification:** Call `checkSynergies()` on various cells; log matching patterns to console
+- [x] `SynergyEngine` class: match adjacency patterns against synergy table
+- [x] `checkSynergies(cell)` method — return matching synergies for a cell
+- [x] Synergy data structure: pattern matcher + result (terrain transform, mana bonus)
+- [x] Implement 3–5 core synergies (e.g., Water + Meadow → Fertile Plain)
+- [x] **Verification:** Call `checkSynergies()` on various cells; log matching patterns to console
 
 **Files to create:**
 - `src/core/synergy/synergy.model.ts` — Synergy data structure
@@ -131,12 +131,12 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.6 — Cell State Visualization
 **Goal:** Visually distinguish cell states (opacity, saturation, overlay) in isometric view.
 
-- [ ] Update IsometricMap tile rendering to show state via visual cues:
+- [x] Update IsometricMap tile rendering to show state via visual cues:
   - VEILED = gray, low opacity (0.3)
   - DORMANT = desaturated color (0.5 saturation)
   - ACTIVE = full color, full opacity (1.0)
-- [ ] Add subtle glow/border for ACTIVE cells in isometric
-- [ ] **Verification:** Log grid with mixed states; see state transitions reflected on isometric screen
+- [x] Add subtle glow/border for ACTIVE cells in isometric
+- [x] **Verification:** Log grid with mixed states; see state transitions reflected on isometric screen
 
 **Files to update:**
 - `src/graphics/isometric-coordinate-system.ts` — Add state-based tile styling
@@ -146,13 +146,13 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 
 ---
 
-### v0.7 — Grid Background Overlay (Isometric)
+### v0.7 — Grid Background Overlay (Isometric) (will not do)
 **Goal:** Render optional grid background/grid lines for isometric view.
 
-- [ ] Update `GridBackground` actor to work with isometric coordinates
-- [ ] Draw subtle grid lines or checker pattern in isometric perspective
-- [ ] Optional: toggle grid on/off with key (e.g., 'G')
-- [ ] **Verification:** See isometric grid pattern on screen; verify no visual clipping with tiles
+- [x] Update `GridBackground` actor to work with isometric coordinates
+- [x] Draw subtle grid lines or checker pattern in isometric perspective
+- [x] Optional: toggle grid on/off with key (e.g., 'G')
+- [x] **Verification:** See isometric grid pattern on screen; verify no visual clipping with tiles
 
 **Files to update:**
 - `src/ui/grid/grid-background.ts` — Support isometric rendering
@@ -164,10 +164,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.8 — Highlighted Cell in Isometric
 **Goal:** Ensure HighlightedCell selection indicator works correctly in isometric.
 
-- [ ] `HighlightedCell` repositioned using `IsometricCoordinateSystem`
-- [ ] Highlight border/glow adapts to isometric tile shape
-- [ ] Visual feedback remains clear in isometric view
-- [ ] **Verification:** Click cells; highlight appears in correct isometric position
+- [x] `HighlightedCell` repositioned using `IsometricCoordinateSystem`
+- [x] Highlight border/glow adapts to isometric tile shape
+- [x] Visual feedback remains clear in isometric view
+- [x] **Verification:** Click cells; highlight appears in correct isometric position
 
 **Files to update:**
 - `src/ui/grid/highlighted-cell.ts` — Use IsometricCoordinateSystem for positioning
@@ -182,9 +182,9 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.9 — Click to Select Cell (Isometric)
 **Goal:** Allow player to click cells in isometric view; track selection.
 
-- [ ] Add pointer event handlers to IsometricMap tiles
-- [ ] `SelectedCell` state (track currently selected cell)
-- [ ] Visual feedback: highlight selected cell in isometric view
+- [x] Add pointer event handlers to IsometricMap tiles
+- [x] `SelectedCell` state (track currently selected cell)
+- [x] Visual feedback: highlight selected cell in isometric view
 - [ ] Deselect when clicking empty area or outside map
 - [ ] **Verification:** Click isometric cells; see highlight change; log selected position to console
 
