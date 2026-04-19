@@ -15,6 +15,7 @@ export const Resources = {
   tiles_sacred_grove: new ImageSource('./images/tiles/floor-sacred-grove-01.png'),
   tiles_foothill: new ImageSource('./images/tiles/floor-foothill-01.png'),
   tiles_hidden_temple: new ImageSource('./images/tiles/floor-hidden-temple-01.png'),
+  human: new ImageSource('./images/humans/human-01.png'),
 } as const; // the 'as const' is a neat typescript trick to get strong typing on your resources.
 // So when you type Resources.Sword -> ImageSource
 
@@ -26,6 +27,7 @@ for (const res of Object.values(Resources)) {
 }
 
 export const Sprites = {
+  // tiles
   selected: Resources.tiles_selected.toSprite(),
   veiled: Resources.tiles_veiled.toSprite(),
   empty: Resources.tiles_empty.toSprite(),
@@ -48,6 +50,8 @@ export const Sprites = {
   footHillDormant: Resources.tiles_foothill.toSprite(),
   hiddenTemple: Resources.tiles_hidden_temple.toSprite(),
   hiddenTempleDormant: Resources.tiles_hidden_temple.toSprite(),
+  // humans
+  human: Resources.human.toSprite(),
 }
 Sprites.selected.opacity = 0.5;
 Sprites.veiled.opacity = 0.85;
