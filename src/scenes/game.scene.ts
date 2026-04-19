@@ -1,9 +1,7 @@
 import {
-    Color,
     Engine, Graphic,
     IsometricMap, IsometricTile,
     Keys,
-    Rectangle,
     Scene,
     Vector,
 } from 'excalibur';
@@ -16,7 +14,6 @@ import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
-import {HighlightedCell} from "../ui/grid/highlighted-cell";
 import {FeedbackMessage} from "../ui/feedback-message";
 import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
@@ -41,8 +38,8 @@ export class GameScene extends Scene {
     private cameraController!: CameraController;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
-    private selectedX: number = 0;
-    private selectedY: number = 0;
+    private selectedX: number = -1;
+    private selectedY: number = -1;
     private lastPulseTime: number = 0;
     private pulseInterval: number = 500; // ms between pulses
 
@@ -238,7 +235,11 @@ export class GameScene extends Scene {
                         `→ getTileByPoint: grid (${tile.x}, ${tile.y}) ` +
                         `→ CoordinateSystem: grid (${gridCoords.x.toFixed(0)}, ${gridCoords.y.toFixed(0)})`
                     );
+                } else {
+                    this.selectCell(-1, -1);
                 }
+            } else {
+                this.selectCell(-1, -1);
             }
         });
 
@@ -254,10 +255,6 @@ export class GameScene extends Scene {
                 this.attemptUnveil(this.selectedX, this.selectedY)
             } else if (evt.key === Keys.Enter) {
                 this.triggerDivinePulse();
-            } else if (evt.key === Keys.Tab) {
-                // Tab to next cell
-                this.selectedX = (this.selectedX + 1) % this.gameEngine.getGrid().getWidth();
-                this.selectCell(this.selectedX, this.selectedY);
             }
         });
     }

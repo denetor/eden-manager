@@ -185,8 +185,8 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 - [x] Add pointer event handlers to IsometricMap tiles
 - [x] `SelectedCell` state (track currently selected cell)
 - [x] Visual feedback: highlight selected cell in isometric view
-- [ ] Deselect when clicking empty area or outside map
-- [ ] **Verification:** Click isometric cells; see highlight change; log selected position to console
+- [x] Deselect when clicking empty area or outside map
+- [x] **Verification:** Click isometric cells; see highlight change; log selected position to console
 
 **Files to create:**
 - `src/input/cell-selector.ts` — Click-to-select logic (updated for isometric)
