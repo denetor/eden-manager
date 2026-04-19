@@ -331,11 +331,11 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.17 — Divine Pulse Triggers Synergies
 **Goal:** On each pulse, check and apply synergies.
 
-- [ ] On `gameEngine.divinePulse()`, iterate all ACTIVE cells
-- [ ] For each cell: run `synergyEngine.checkSynergies()`
-- [ ] If synergies match: apply transformation (e.g., Meadow → Fertile Plain)
-- [ ] Log synergy triggers to console
-- [ ] **Verification:** Arrange Water + Meadow adjacently, awaken both, trigger pulse; see Meadow transform; console logs synergy
+- [x] On `gameEngine.divinePulse()`, iterate all ACTIVE cells
+- [x] For each cell: run `synergyEngine.checkSynergies()`
+- [x] If synergies match: apply transformation (e.g., Meadow → Fertile Plain)
+- [x] Log synergy triggers to console
+- [x] **Verification:** Arrange Water + Meadow adjacently, awaken both, trigger pulse; see Meadow transform; console logs synergy
 
 **Files to update:**
 - `src/core/synergy/synergy.service.ts` — Return detailed synergy match info
