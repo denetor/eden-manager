@@ -298,8 +298,8 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 - [x] "Awaken" action (keyboard: 'A', or via scene)
 - [x] Press → spend 10 mana + set cell state to ACTIVE
 - [x] Visual feedback: cell becomes vivid, full color in isometric
-- [ ] Trigger synergy check on awakened cell (log to console)
-- [ ] **Verification:** Awaken a cell; see color change; check console for synergy matches; mana decrease
+- [x] Trigger synergy check on awakened cell (log to console) (will not do, activated cell is marked dirty and synergy checked next pulse)
+- [x] **Verification:** Awaken a cell; see color change; check console for synergy matches; mana decrease
 
 **Files to update:**
 - `src/scenes/game.scene.ts` — Add keyboard binding for awaken
