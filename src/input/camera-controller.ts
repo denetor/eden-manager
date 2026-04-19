@@ -48,19 +48,19 @@ export class CameraController {
      */
     setupInputHandling(engine: Engine): void {
         // Listen to mouse wheel events for zoom input
-        console.log('CameraController: Setting up wheel listener');
+        // console.log('CameraController: Setting up wheel listener');
 
         try {
             engine.input.pointers.on('wheel', (evt: any) => {
-                console.log('Wheel event detected:', evt.deltaY);
+                // console.log('Wheel event detected:', evt.deltaY);
                 if (evt.deltaY > 0) {
                     // Scroll down: zoom out
                     this.zoomDelta -= this.zoomSpeed;
-                    console.log('Zoom out, delta:', this.zoomDelta);
+                    // console.log('Zoom out, delta:', this.zoomDelta);
                 } else if (evt.deltaY < 0) {
                     // Scroll up: zoom in
                     this.zoomDelta += this.zoomSpeed;
-                    console.log('Zoom in, delta:', this.zoomDelta);
+                    // console.log('Zoom in, delta:', this.zoomDelta);
                 }
             });
         } catch (e) {
@@ -92,7 +92,7 @@ export class CameraController {
 
         // Accumulate zoom delta each frame (from events and keyboard)
         let frameZoomDelta = this.zoomDelta;
-        console.log('Frame zoom delta from events:', frameZoomDelta);
+        // console.log('Frame zoom delta from events:', frameZoomDelta);
         this.zoomDelta = 0;
 
         // Check keyboard state for zoom input
@@ -101,17 +101,17 @@ export class CameraController {
         const equalHeld = engine.input.keyboard.isHeld(Keys.Equal);
         if (plusHeld || equalHeld) {
             frameZoomDelta += this.zoomSpeed;
-            console.log('Zoom in (keyboard), plus:', plusHeld, 'equal:', equalHeld);
+            // console.log('Zoom in (keyboard), plus:', plusHeld, 'equal:', equalHeld);
         }
         // -/_ keys for zoom out
         const minusHeld = engine.input.keyboard.isHeld(Keys.Minus);
         const underscoreHeld = engine.input.keyboard.isHeld(Keys.Underscore);
         if (minusHeld || underscoreHeld) {
             frameZoomDelta -= this.zoomSpeed;
-            console.log('Zoom out (keyboard), minus:', minusHeld, 'underscore:', underscoreHeld);
+            // console.log('Zoom out (keyboard), minus:', minusHeld, 'underscore:', underscoreHeld);
         }
 
-        console.log('Final frameZoomDelta:', frameZoomDelta, 'currentZoom before:', this.currentZoom);
+        // console.log('Final frameZoomDelta:', frameZoomDelta, 'currentZoom before:', this.currentZoom);
 
         // Apply zoom if there's a zoom delta
         if (frameZoomDelta !== 0) {
@@ -119,8 +119,7 @@ export class CameraController {
             // Clamp zoom to valid range
             this.currentZoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.currentZoom));
             camera.zoom = this.currentZoom;
-
-            console.log(`Camera zoom: ${this.currentZoom.toFixed(2)}x`);
+            // console.log(`Camera zoom: ${this.currentZoom.toFixed(2)}x`);
         }
 
         // Check keyboard state and accumulate pan velocity
@@ -151,7 +150,7 @@ export class CameraController {
             // Apply to camera by creating a new Vector (pos might be immutable)
             camera.pos = new Vector(newX, newY);
 
-            console.log(`Camera pan: (${camera.pos.x.toFixed(0)}, ${camera.pos.y.toFixed(0)})`);
+            // console.log(`Camera pan: (${camera.pos.x.toFixed(0)}, ${camera.pos.y.toFixed(0)})`);
         }
     }
 

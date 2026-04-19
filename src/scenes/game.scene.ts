@@ -57,7 +57,7 @@ export class GameScene extends Scene {
 
         // 2. Initialize all game systems
         const synergy = new SynergyEngine(grid);
-        const mana = new ManaService(50, 100, 10);
+        const mana = new ManaService(50, 100, 1);
         const humans = new HumansService(grid);
         const creatures = new CreaturesService(grid);
         this.gameEngine = new GameEngine(grid, synergy, mana, humans, creatures);
@@ -171,7 +171,7 @@ export class GameScene extends Scene {
             const tile = this.isometricMap.getTile(x, y);
             if (tile) {
                 this.setComposedGraphic(tile, cell, (x === this.selectedX && y === this.selectedY));
-                console.log(`Updated tile (${x}, ${y}): state=${cell.state}, terrain=${cell.terrainType}`);
+                // console.log(`Updated tile (${x}, ${y}): state=${cell.state}, terrain=${cell.terrainType}`);
             }
         });
 
@@ -184,7 +184,7 @@ export class GameScene extends Scene {
                     this.setComposedGraphic(tile, cell, (change.x === this.selectedX && change.y === this.selectedY));
                 }
             }
-            console.log(`Batch updated ${changes.length} tiles`);
+            // console.log(`Batch updated ${changes.length} tiles`);
         });
     }
 
@@ -230,11 +230,11 @@ export class GameScene extends Scene {
                     // this.attemptReshape(this.selectedX, this.selectedY, 'Forest');
 
                     // Console verification: log both methods of getting grid coordinates
-                    console.log(
-                        `Click Detection → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
-                        `→ getTileByPoint: grid (${tile.x}, ${tile.y}) ` +
-                        `→ CoordinateSystem: grid (${gridCoords.x.toFixed(0)}, ${gridCoords.y.toFixed(0)})`
-                    );
+                    // console.log(
+                    //     `Click Detection → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
+                    //     `→ getTileByPoint: grid (${tile.x}, ${tile.y}) ` +
+                    //     `→ CoordinateSystem: grid (${gridCoords.x.toFixed(0)}, ${gridCoords.y.toFixed(0)})`
+                    // );
                 } else {
                     this.selectCell(-1, -1);
                 }
@@ -320,14 +320,14 @@ export class GameScene extends Scene {
 
         // Check cooldown
         if (!this.gameEngine.canReshape(x, y)) {
-            console.log('Cooling...');
+            // console.log('Cooling...');
             this.showFeedback('Cooling...');
             return;
         }
 
         // Check mana
         if (!mana.hasEnough(manaCost)) {
-            console.log('Insufficient mana');
+            // console.log('Insufficient mana');
             this.showFeedback('Insufficient mana');
             return;
         }
@@ -335,7 +335,7 @@ export class GameScene extends Scene {
         // Attempt reshape
         const success = this.gameEngine.reshape(x, y, terrainType as any, manaCost);
         if (success) {
-            console.log(`Reshaped to ${terrainType}`);
+            // console.log(`Reshaped to ${terrainType}`);
             this.showFeedback(`Reshaped to ${terrainType}`);
         }
     }
@@ -351,13 +351,13 @@ export class GameScene extends Scene {
      * @return {void} This method does not return a value.
      */
     private attemptUnveil(x: number, y: number): void {
-        console.log(`attemptUnveil(${x}, ${y})`);
+        // console.log(`attemptUnveil(${x}, ${y})`);
         const mana = this.gameEngine.getMana();
         const manaCost = 10; // Base cost per reshape
 
         // Check mana
         if (!mana.hasEnough(manaCost)) {
-            console.log('Insufficient mana');
+            // console.log('Insufficient mana');
             this.showFeedback('Insufficient mana');
             return;
         }
@@ -395,7 +395,7 @@ export class GameScene extends Scene {
      * This is a Phase 2 acceptance criteria: console verification of coordinate transforms.
      */
     private verifyCoordinateSystemTransforms(): void {
-        console.log('=== Phase 2: CoordinateSystem Verification ===');
+        // console.log('=== Phase 2: CoordinateSystem Verification ===');
 
         // Test key grid cells: corners and center
         const testCells = [
@@ -414,14 +414,13 @@ export class GameScene extends Scene {
             // Test worldToTile: world → grid (should return close to original)
             const backToTile = this.coordinateSystem.worldToTile(worldPos);
 
-            console.log(
-                `Cell ${cell.name} (${cell.x}, ${cell.y}): ` +
-                `tileToWorld → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
-                `→ worldToTile → grid (${backToTile.x.toFixed(2)}, ${backToTile.y.toFixed(2)})`
-            );
+            // console.log(
+            //     `Cell ${cell.name} (${cell.x}, ${cell.y}): ` +
+            //     `tileToWorld → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
+            //     `→ worldToTile → grid (${backToTile.x.toFixed(2)}, ${backToTile.y.toFixed(2)})`
+            // );
         }
-
-        console.log('=== Phase 2 Verification Complete ===');
+        // console.log('=== Phase 2 Verification Complete ===');
     }
 
 }

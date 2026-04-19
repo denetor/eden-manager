@@ -278,10 +278,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.14 — Unveil Mechanic
 **Goal:** Implement actual Unveil action (reveal hidden cells).
 
-- [ ] "Unveil" action (Space key, or attemptUnveil in scene)
-- [ ] Press/call → spend 10 mana + set cell state to DORMANT
-- [ ] Visual feedback: cell color changes from gray to desaturated in isometric view
-- [ ] **Verification:** Unveil a cell; see state change; mana decrease
+- [x] "Unveil" action (Space key, or attemptUnveil in scene)
+- [x] Press/call → spend 10 mana + set cell state to DORMANT
+- [x] Visual feedback: cell color changes from gray to desaturated in isometric view
+- [x] **Verification:** Unveil a cell; see state change; mana decrease
 
 **Files to update:**
 - `src/scenes/game.scene.ts` — Already has attemptUnveil method
