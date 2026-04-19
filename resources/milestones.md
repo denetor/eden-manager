@@ -75,8 +75,8 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 - [x] `CellState` enum: VEILED, DORMANT, ACTIVE
 - [x] Add `state` property to Cell
 - [x] Add `setState(newState)` method with validation
-- [ ] Track state-dependent properties (e.g., inert cells have no influence)
-- [ ] **Verification:** Log cell state transitions to console; verify state changes are valid
+- [x] Track state-dependent properties (e.g., inert cells have no influence)
+- [x] **Verification:** Log cell state transitions to console; verify state changes are valid
 
 **Files to update:**
 - `src/core/grid/grid.model.ts` — Add state property and transitions
