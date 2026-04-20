@@ -1,4 +1,5 @@
 import { Grid } from '../core/grid/grid.service';
+import { HumansService } from '../core/humans/humans.service';
 
 /**
  * PersistenceService handles saving and loading game state from localStorage.
@@ -7,6 +8,7 @@ import { Grid } from '../core/grid/grid.service';
  */
 export class PersistenceService {
     private readonly STORAGE_KEY = 'edenManagerGameState';
+    private readonly HUMANS_STORAGE_KEY = 'edenManagerHumansState';
 
     /**
      * Save grid state to localStorage.
@@ -89,5 +91,29 @@ export class PersistenceService {
      */
     getStorageKey(): string {
         return this.STORAGE_KEY;
+    }
+
+    saveHumans(humans: HumansService): boolean {
+        try {
+            const json = JSON.stringify(humans.toJSON());
+            if (typeof localStorage === 'undefined') return false;
+            localStorage.setItem(this.HUMANS_STORAGE_KEY, json);
+            return true;
+        } catch (error) {
+            console.error('Failed to save humans state:', error);
+            return false;
+        }
+    }
+
+    loadHumans(grid: Grid): HumansService | null {
+        try {
+            if (typeof localStorage === 'undefined') return null;
+            const json = localStorage.getItem(this.HUMANS_STORAGE_KEY);
+            if (!json) return null;
+            return HumansService.fromJSON(JSON.parse(json), grid);
+        } catch (error) {
+            console.error('Failed to load humans state:', error);
+            return null;
+        }
     }
 }

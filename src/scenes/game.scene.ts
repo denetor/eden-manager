@@ -58,7 +58,7 @@ export class GameScene extends Scene {
         // 2. Initialize all game systems
         const synergy = new SynergyEngine(grid);
         const mana = new ManaService(50, 100, 1);
-        const humans = new HumansService(grid);
+        const humans = this.persistenceService.loadHumans(grid) ?? new HumansService(grid);
         const creatures = new CreaturesService(grid);
         this.gameEngine = new GameEngine(grid, synergy, mana, humans, creatures);
 
@@ -436,6 +436,7 @@ export class GameScene extends Scene {
     private triggerDivinePulse(): void {
         this.gameEngine.divinePulse();
         this.persistenceService.saveGrid(this.gameEngine.getGrid());
+        this.persistenceService.saveHumans(this.gameEngine.getHumans());
     }
 
 

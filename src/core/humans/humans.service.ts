@@ -68,4 +68,15 @@ export class HumansService {
             totalCount: this.humans.length,
         };
     }
+
+    toJSON(): { humans: Human[] } {
+        return { humans: this.humans.map(h => ({ ...h })) };
+    }
+
+    static fromJSON(data: { humans: Human[] }, grid: Grid): HumansService | null {
+        if (!data || !Array.isArray(data.humans)) return null;
+        const service = new HumansService(grid);
+        service.humans = data.humans.map(h => ({ ...h }));
+        return service;
+    }
 }
