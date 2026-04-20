@@ -188,6 +188,29 @@ export class GameEngine {
         return true;
     }
 
+    /**
+     * Spawn a human on an Active Meadow or Fertile Plain cell with no existing occupants.
+     * Returns true if successful, false if the cell is invalid or mana is insufficient.
+     */
+    spawnHuman(x: number, y: number, manaCost: number): boolean {
+        if (x < 0 || x >= this.grid.getWidth() || y < 0 || y >= this.grid.getHeight()) {
+            return false;
+        }
+
+        const cell = this.grid.getCell(x, y);
+        if (!cell || cell.state !== 'Active') return false;
+        if (cell.terrainType !== 'Meadow' && cell.terrainType !== 'Fertile Plain') return false;
+
+        const occupied = this.humans.getHumans().some(h => h.x === x && h.y === y)
+            || this.creatures.getCreatures().some(c => c.x === x && c.y === y);
+        if (occupied) return false;
+
+        if (!this.mana.spend(manaCost)) return false;
+
+        this.humans.addHuman(`human_${Date.now()}`, x, y);
+        return true;
+    }
+
     // Accessors for testing and external systems
     getGrid(): Grid {
         return this.grid;

@@ -371,10 +371,10 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.19 — Human Settlement Placement
 **Goal:** Place human communities on cells; track population.
 
-- [ ] `HumansService` class (already exists): stores positions, needs (water, food), status
-- [ ] "Place Humans" keyboard action (e.g., 'H') to spawn on selected active cell
-- [ ] Visual: small icon or dot on cell to indicate humans present (in isometric)
-- [ ] **Verification:** Place humans on multiple cells; see icons; log to console
+- [x] `HumansService` class (already exists): stores positions, needs (water, food), status
+- [x] "Place Humans" keyboard action (e.g., 'H') to spawn on selected active cell
+- [x] Visual: small icon or dot on cell to indicate humans present (in isometric)
+- [x] **Verification:** Place humans on multiple cells; see icons; log to console
 
 **Files to update:**
 - `src/core/humans/humans.service.ts` — Already exists; verify settlement logic

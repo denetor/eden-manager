@@ -15,7 +15,7 @@ import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
 import {FeedbackMessage} from "../ui/feedback-message";
-import {TILE_WIDTH, TILE_HEIGHT} from '../shared/constants';
+import {TILE_WIDTH, TILE_HEIGHT, HUMAN_SPAWN_COST} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
 import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
@@ -204,9 +204,18 @@ export class GameScene extends Scene {
         if (cell.state === 'Veiled') {
             tile.addGraphic(Sprites.veiled);
         }
+        this.addEntityOverlays(tile, cell);
         if (selected) {
             tile.addGraphic(Sprites.selected);
         }
+    }
+
+    private addEntityOverlays(tile: IsometricTile, cell: Cell): void {
+        const humans = this.gameEngine.getHumans().getHumans();
+        if (humans.some(h => h.x === cell.x && h.y === cell.y)) {
+            tile.addGraphic(Sprites.human);
+        }
+        // Future: creatures, tile improvements, etc.
     }
 
     /**
@@ -255,6 +264,8 @@ export class GameScene extends Scene {
                 this.attemptUnveil(this.selectedX, this.selectedY)
             } else if (evt.key === Keys.A) {
                 this.attemptActivate(this.selectedX, this.selectedY);
+            } else if (evt.key === Keys.H) {
+                this.attemptSpawnHuman(this.selectedX, this.selectedY);
             } else if (evt.key === Keys.Enter) {
                 this.triggerDivinePulse();
             }
@@ -398,6 +409,25 @@ export class GameScene extends Scene {
         }
     }
 
+
+
+    private attemptSpawnHuman(x: number, y: number): void {
+        if (!this.gameEngine.getMana().hasEnough(HUMAN_SPAWN_COST)) {
+            this.showFeedback('Insufficient mana');
+            return;
+        }
+        const success = this.gameEngine.spawnHuman(x, y, HUMAN_SPAWN_COST);
+        if (success) {
+            const tile = this.isometricMap.getTile(x, y);
+            const cell = this.gameEngine.getGrid().getCell(x, y);
+            if (tile && cell) {
+                this.setComposedGraphic(tile, cell, x === this.selectedX && y === this.selectedY);
+            }
+            this.showFeedback('Human placed');
+        } else {
+            this.showFeedback('Cannot place human here');
+        }
+    }
 
 
     /**

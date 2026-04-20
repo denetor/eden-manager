@@ -20,3 +20,6 @@ export const MAP_HEIGHT = GRID_HEIGHT * TILE_HEIGHT;
 /** Viewport dimensions (logical pixels) */
 export const VIEWPORT_WIDTH = 800;
 export const VIEWPORT_HEIGHT = 600;
+
+/** Mana costs for player actions */
+export const HUMAN_SPAWN_COST = 10;
