@@ -14,6 +14,7 @@ import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
+import {DashboardHud} from '../ui/hud/dashboard-hud';
 import {FeedbackMessage} from "../ui/feedback-message";
 import {TILE_WIDTH, TILE_HEIGHT, HUMAN_SPAWN_COST} from '../shared/constants';
 import {CoordinateSystem} from '../graphics/coordinate-system';
@@ -84,6 +85,9 @@ export class GameScene extends Scene {
 
         this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
+
+        const dashboard = new DashboardHud();
+        this.add(dashboard);
 
         // 5. Subscribe to cell change events
         this.subscribeToGridEvents(grid);

@@ -21,5 +21,8 @@ export const MAP_HEIGHT = GRID_HEIGHT * TILE_HEIGHT;
 export const VIEWPORT_WIDTH = 800;
 export const VIEWPORT_HEIGHT = 600;
 
+/** Excalibur layers **/
+export const Z_UI = 999;
+
 /** Mana costs for player actions */
 export const HUMAN_SPAWN_COST = 10;
