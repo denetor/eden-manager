@@ -1,4 +1,4 @@
-import { Actor, Color, Line, vec, Vector } from 'excalibur';
+import { Actor, vec, Vector } from 'excalibur';
 import { CoordinateSystem } from '../../graphics/coordinate-system';
 import {Sprites} from "../../resources";
 
@@ -8,19 +8,13 @@ import {Sprites} from "../../resources";
  * Initially invisible; becomes visible when a cell is selected via updateSelection().
  */
 export class HighlightedCell extends Actor {
-    private readonly tileWidth: number;
-    private readonly tileHeight: number;
     private readonly coordinateSystem: CoordinateSystem;
 
     constructor(
-        tileWidth: number,
-        tileHeight: number,
         coordinateSystem: CoordinateSystem
     ) {
         super();
         this.anchor = vec(0, 0);
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
         this.coordinateSystem = coordinateSystem;
         this.active = false; // Initially inactive until a cell is selected
     }

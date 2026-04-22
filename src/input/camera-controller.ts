@@ -97,7 +97,7 @@ export class CameraController {
 
         // Check keyboard state for zoom input
         // +/= keys for zoom in
-        const plusHeld = engine.input.keyboard.isHeld(Keys.Plus);
+        const plusHeld = false; // TODO fix missing Keys.Plus: engine.input.keyboard.isHeld(Keys.Plus);
         const equalHeld = engine.input.keyboard.isHeld(Keys.Equal);
         if (plusHeld || equalHeld) {
             frameZoomDelta += this.zoomSpeed;
@@ -105,7 +105,7 @@ export class CameraController {
         }
         // -/_ keys for zoom out
         const minusHeld = engine.input.keyboard.isHeld(Keys.Minus);
-        const underscoreHeld = engine.input.keyboard.isHeld(Keys.Underscore);
+        const underscoreHeld = false; // TODO fix missing Keys.Underscore: engine.input.keyboard.isHeld(Keys.Underscore);
         if (minusHeld || underscoreHeld) {
             frameZoomDelta -= this.zoomSpeed;
             // console.log('Zoom out (keyboard), minus:', minusHeld, 'underscore:', underscoreHeld);

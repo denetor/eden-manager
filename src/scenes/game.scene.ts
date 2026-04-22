@@ -3,7 +3,6 @@ import {
     IsometricMap, IsometricTile,
     Keys,
     Scene,
-    Vector,
 } from 'excalibur';
 import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
@@ -14,11 +13,9 @@ import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
-import {DashboardHud} from '../ui/hud/dashboard-hud';
 import {FeedbackMessage} from "../ui/feedback-message";
 import {TILE_WIDTH, TILE_HEIGHT, HUMAN_SPAWN_COST} from '../shared/constants';
-import {CoordinateSystem} from '../graphics/coordinate-system';
-import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
+// import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
 import {Sprites} from "../resources";
 import {Cell} from "../core/grid/grid.model";
@@ -35,7 +32,6 @@ export class GameScene extends Scene {
     private gameEngine!: GameEngine;
     private persistenceService: PersistenceService;
     private isometricMap!: IsometricMap;
-    private coordinateSystem!: CoordinateSystem;
     private cameraController!: CameraController;
     private manaDisplay!: ManaDisplay;
     private cellInfo!: CellInfo;
@@ -74,7 +70,7 @@ export class GameScene extends Scene {
         this.add(this.isometricMap);
 
         // 3b. Initialize CoordinateSystem
-        this.coordinateSystem = new IsometricCoordinateSystem(this.isometricMap);
+        // this.coordinateSystem = new IsometricCoordinateSystem(this.isometricMap);
 
         // 3c. Initialize CameraController (Phase 3: Camera Panning)
         this.cameraController = new CameraController();
@@ -92,9 +88,6 @@ export class GameScene extends Scene {
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
         this.cameraController.setupInputHandling(engine);
-
-        // 7. Verify CoordinateSystem transformations (Phase 2 verification)
-        this.verifyCoordinateSystemTransforms();
     }
 
 
@@ -275,19 +268,6 @@ export class GameScene extends Scene {
 
 
     /**
-     * Convert world position to grid coordinates using the CoordinateSystem abstraction.
-     * This method enables isometric-aware coordinate transformation and is the single
-     * point of conversion for all world-to-grid operations. Supports future perspective swaps.
-     *
-     * @param worldPos World position in pixels (result of camera transforms)
-     * @returns Grid coordinates (fractional, typically floored for cell lookup)
-     */
-    private screenToGridCoordinates(worldPos: any): any {
-        // Delegate to CoordinateSystem for abstraction and future perspective flexibility
-        return this.coordinateSystem.worldToTile(worldPos);
-    }
-
-    /**
      * Select a cell and update UI.
      * Updates both internal state and visual indicators (CellInfo, HighlightedCell).
      *
@@ -448,40 +428,4 @@ export class GameScene extends Scene {
         const feedback = new FeedbackMessage(message, duration);
         this.add(feedback);
     }
-
-
-    /**
-     * Verify CoordinateSystem transformations (Phase 2: Click Detection & Selection).
-     * Tests key grid cells to ensure worldToTile() and tileToWorld() work correctly.
-     * This is a Phase 2 acceptance criteria: console verification of coordinate transforms.
-     */
-    private verifyCoordinateSystemTransforms(): void {
-        // console.log('=== Phase 2: CoordinateSystem Verification ===');
-
-        // Test key grid cells: corners and center
-        const testCells = [
-            { x: 0, y: 0, name: 'top-left corner' },
-            { x: 15, y: 0, name: 'top-right corner' },
-            { x: 0, y: 15, name: 'bottom-left corner' },
-            { x: 15, y: 15, name: 'bottom-right corner' },
-            { x: 7, y: 7, name: 'center cell' },
-        ];
-
-        for (const cell of testCells) {
-            // Test tileToWorld: grid → world
-            const tilePos = new Vector(cell.x, cell.y);
-            const worldPos = this.coordinateSystem.tileToWorld(tilePos);
-
-            // Test worldToTile: world → grid (should return close to original)
-            const backToTile = this.coordinateSystem.worldToTile(worldPos);
-
-            // console.log(
-            //     `Cell ${cell.name} (${cell.x}, ${cell.y}): ` +
-            //     `tileToWorld → world (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}) ` +
-            //     `→ worldToTile → grid (${backToTile.x.toFixed(2)}, ${backToTile.y.toFixed(2)})`
-            // );
-        }
-        // console.log('=== Phase 2 Verification Complete ===');
-    }
-
 }
