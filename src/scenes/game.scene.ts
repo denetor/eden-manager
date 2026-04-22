@@ -86,9 +86,6 @@ export class GameScene extends Scene {
         this.cellInfo = new CellInfo(grid);
         this.add(this.cellInfo);
 
-        const dashboard = new DashboardHud();
-        this.add(dashboard);
-
         // 5. Subscribe to cell change events
         this.subscribeToGridEvents(grid);
 

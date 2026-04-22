@@ -6,8 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="./src/style.css">
     <title>Excalibur + Vite</title>
+    <style>
+      #dashboard {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        width: 100%;
+        height: 80px;
+        color: yellowgreen;
+        background-color: black;
+      }
+      #dashboard > .info {
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
   </head>
   <body>
     <script type="module" src="./src/main.ts"></script>
+    <div id="dashboard">
+      <div class="info">
+        <div class="mana">[Mana level TBD]</div>
+        <div class="cell">[Cell information TBD]</div>
+      </div>
+      <div class="help">ARROWS: move &mdash; SPACE: unveil cell &mdash; A: activate cell &mdash; W/P/F/M: spawn Water/Plains/Forest/Mountain &mdash; H: spawn Humans (in plain)</div>
+    </div>
   </body>
 </html>

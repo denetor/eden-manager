@@ -1,5 +1,5 @@
 import { Engine, Keys, Vector } from 'excalibur';
-import { TILE_WIDTH, TILE_HEIGHT, GRID_WIDTH, GRID_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../shared/constants';
+import { TILE_WIDTH, TILE_HEIGHT, MAP_WIDTH, MAP_HEIGHT } from '../shared/constants';
 
 /**
  * CameraController manages pan input (Arrow and WASD keys) and zoom input (mouse wheel, +/- keys).
