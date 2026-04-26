@@ -25,6 +25,7 @@ export const Resources = {
   tiles_hidden_temple: new ImageSource('./images/tiles/floor-hidden-temple-01.png'),
   tiles_hidden_temple_dormant: new ImageSource('./images/tiles/floor-hidden-temple-01-dormant.png'),
   human: new ImageSource('./images/humans/human-01.png'),
+  human_dormant: new ImageSource('./images/humans/human-01-dormant.png'),
 } as const; // the 'as const' is a neat typescript trick to get strong typing on your resources.
 // So when you type Resources.Sword -> ImageSource
 
@@ -61,11 +62,12 @@ export const Sprites = {
   hiddenTempleDormant: Resources.tiles_hidden_temple_dormant.toSprite(),
   // humans
   human: Resources.human.toSprite(),
+  humanDormant: Resources.human_dormant.toSprite(),
 }
 Sprites.selected.opacity = 0.5;
 Sprites.veiled.opacity = 0.85;
 
-// make gray dormant versions
+// make dormant sprites grayer
 const dormantTint = Color.DarkGray;
 Sprites.emptyDormant.tint = dormantTint
 Sprites.meadowDormant.tint = dormantTint
@@ -76,5 +78,6 @@ Sprites.ruinsDormant.tint = dormantTint
 Sprites.fertilePlainDormant.tint = dormantTint
 Sprites.sacredGroveDormant.tint = dormantTint
 Sprites.footHillDormant.tint = dormantTint
-Sprites.hiddenTemple.tint = dormantTint
+Sprites.hiddenTempleDormant.tint = dormantTint
+Sprites.humanDormant.tint = dormantTint
 
