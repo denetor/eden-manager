@@ -180,6 +180,28 @@ export class Grid extends EventEmitter {
     }
 
     /**
+     * Get all cells within Chebyshev distance `radius` of (x, y).
+     * Only in-bounds cells are returned; the center cell at distance 0 is always included.
+     * Chebyshev distance: Math.max(|dx|, |dy|) <= radius, so radius r covers a (2r+1)×(2r+1) square.
+     *
+     * @param x - Column index of the center cell
+     * @param y - Row index of the center cell
+     * @param radius - Maximum Chebyshev distance; 0 returns only the center cell
+     */
+    getCellsInRadius(x: number, y: number, radius: number): Cell[] {
+        const cells: Cell[] = [];
+        for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+                const cell = this.getCell(x + dx, y + dy);
+                if (cell) {
+                    cells.push(cell);
+                }
+            }
+        }
+        return cells;
+    }
+
+    /**
      * Get all adjacent cells (neighbors) for a given coordinate.
      * Returns empty array if coordinate is out-of-bounds.
      * For valid coordinates, returns up to 8 neighbors depending on position:

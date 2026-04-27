@@ -388,13 +388,12 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.20 — Human Necessity Rules
 **Goal:** Humans require water & food; enter dormancy if unmet.
 
-- [ ] On each pulse: for each human group, check:
+- [x] On each pulse: for each human group, check:
   - Water within 3-cell radius (Freshwater terrain)
   - Food within 2-cell radius (Meadow, Fertile Plain)
-- [ ] If unmet: set status to Dormant (visual: grayed out)
-- [ ] If met: set status to Active (visual: full color)
-- [ ] Log human status changes to console
-- [ ] **Verification:** Place humans in desert; see them go dormant; place water nearby on pulse; see activate
+- [x] If unmet: set status to Dormant (visual: grayed out)
+- [x] If met: set status to Active (visual: full color)
+- [x] Log human status changes to console
 
 **Files to update:**
 - `src/core/humans/humans.service.ts` — Implement necessity check

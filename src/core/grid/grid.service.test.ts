@@ -778,6 +778,106 @@ describe('Grid', () => {
         });
     });
 
+    describe('getCellsInRadius', () => {
+        let grid: Grid;
+
+        beforeEach(() => {
+            grid = new Grid(16, 16);
+        });
+
+        it('should return exactly 1 cell for radius 0 (the center itself)', () => {
+            const cells = grid.getCellsInRadius(8, 8, 0);
+
+            expect(cells.length).toBe(1);
+            expect(cells[0].x).toBe(8);
+            expect(cells[0].y).toBe(8);
+        });
+
+        it('should return up to 9 cells for radius 1 (3×3 area)', () => {
+            const cells = grid.getCellsInRadius(8, 8, 1);
+
+            expect(cells.length).toBe(9);
+        });
+
+        it('should return up to 25 cells for radius 2 (5×5 area)', () => {
+            const cells = grid.getCellsInRadius(8, 8, 2);
+
+            expect(cells.length).toBe(25);
+        });
+
+        it('should return correct cells for radius 1 at interior position', () => {
+            const cells = grid.getCellsInRadius(5, 5, 1);
+            const coords = cells.map(c => ({ x: c.x, y: c.y }));
+
+            expect(coords).toContainEqual({ x: 4, y: 4 });
+            expect(coords).toContainEqual({ x: 5, y: 4 });
+            expect(coords).toContainEqual({ x: 6, y: 4 });
+            expect(coords).toContainEqual({ x: 4, y: 5 });
+            expect(coords).toContainEqual({ x: 5, y: 5 });
+            expect(coords).toContainEqual({ x: 6, y: 5 });
+            expect(coords).toContainEqual({ x: 4, y: 6 });
+            expect(coords).toContainEqual({ x: 5, y: 6 });
+            expect(coords).toContainEqual({ x: 6, y: 6 });
+        });
+
+        it('should return only in-bounds cells for top-left corner', () => {
+            const cells = grid.getCellsInRadius(0, 0, 2);
+
+            expect(cells.every(c => c.x >= 0 && c.y >= 0)).toBe(true);
+            expect(cells.length).toBe(9); // 3×3 from (0,0) to (2,2)
+        });
+
+        it('should return only in-bounds cells for top-right corner', () => {
+            const cells = grid.getCellsInRadius(15, 0, 2);
+
+            expect(cells.every(c => c.x <= 15 && c.y >= 0)).toBe(true);
+            expect(cells.length).toBe(9); // 3×3 from (13,0) to (15,2)
+        });
+
+        it('should return only in-bounds cells for bottom-left corner', () => {
+            const cells = grid.getCellsInRadius(0, 15, 2);
+
+            expect(cells.every(c => c.x >= 0 && c.y <= 15)).toBe(true);
+            expect(cells.length).toBe(9);
+        });
+
+        it('should return only in-bounds cells for bottom-right corner', () => {
+            const cells = grid.getCellsInRadius(15, 15, 2);
+
+            expect(cells.every(c => c.x <= 15 && c.y <= 15)).toBe(true);
+            expect(cells.length).toBe(9);
+        });
+
+        it('should return only in-bounds cells for a top edge position', () => {
+            const cells = grid.getCellsInRadius(8, 0, 2);
+
+            expect(cells.every(c => c.y >= 0)).toBe(true);
+            expect(cells.length).toBe(15); // 5 columns × 3 rows (y=0..2)
+        });
+
+        it('should return only in-bounds cells for a left edge position', () => {
+            const cells = grid.getCellsInRadius(0, 8, 2);
+
+            expect(cells.every(c => c.x >= 0)).toBe(true);
+            expect(cells.length).toBe(15); // 3 columns (x=0..2) × 5 rows
+        });
+
+        it('should include the center cell for any interior position', () => {
+            const cells = grid.getCellsInRadius(7, 9, 3);
+            const hasCenter = cells.some(c => c.x === 7 && c.y === 9);
+
+            expect(hasCenter).toBe(true);
+        });
+
+        it('should return actual Cell references (not copies)', () => {
+            const cells = grid.getCellsInRadius(5, 5, 1);
+            const direct = grid.getCell(5, 5);
+            const center = cells.find(c => c.x === 5 && c.y === 5);
+
+            expect(center).toBe(direct);
+        });
+    });
+
     describe('getAdjacentCells', () => {
         let grid: Grid;
 

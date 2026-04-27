@@ -8,7 +8,7 @@ import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
 import {SynergyEngine} from '../core/synergy/synergy.service';
 import {ManaService} from '../core/mana/mana.service';
-import {HumansService} from '../core/humans/humans.service';
+import {HumansService, HumanStatusChangedPayload} from '../core/humans/humans.service';
 import {CreaturesService} from '../core/creatures/creatures.service';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
@@ -84,6 +84,7 @@ export class GameScene extends Scene {
 
         // 5. Subscribe to cell change events
         this.subscribeToGridEvents(grid);
+        this.subscribeToHumansEvents(this.gameEngine.getHumans());
 
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
@@ -157,6 +158,23 @@ export class GameScene extends Scene {
 
 
     /**
+     * Subscribe to HumansService events to refresh tiles when a human's survival status changes.
+     *
+     * @param humans - The HumansService instance emitting humanStatusChanged events
+     */
+    private subscribeToHumansEvents(humans: HumansService): void {
+        humans.on('humanStatusChanged', (payload: HumanStatusChangedPayload) => {
+            const tile = this.isometricMap.getTile(payload.x, payload.y);
+            if (tile) {
+                const cell = this.gameEngine.getGrid().getCell(payload.x, payload.y);
+                if (cell) {
+                    this.setComposedGraphic(tile, cell, payload.x === this.selectedX && payload.y === this.selectedY);
+                }
+            }
+        });
+    }
+
+    /**
      * Subscribe to Grid events to update tile graphics when cell state changes.
      */
     private subscribeToGridEvents(grid: Grid): void {
@@ -204,10 +222,18 @@ export class GameScene extends Scene {
         }
     }
 
+    /**
+     * Overlay entity sprites on a tile.
+     * Selects the dormant or active human sprite based on the human's current status.
+     *
+     * @param tile - The tile to add overlay graphics to
+     * @param cell - The cell whose coordinates are used to locate entities
+     */
     private addEntityOverlays(tile: IsometricTile, cell: Cell): void {
         const humans = this.gameEngine.getHumans().getHumans();
-        if (humans.some(h => h.x === cell.x && h.y === cell.y)) {
-            tile.addGraphic(Sprites.human);
+        const humanAtCell = humans.find(h => h.x === cell.x && h.y === cell.y);
+        if (humanAtCell) {
+            tile.addGraphic(humanAtCell.status === 'Dormant' ? Sprites.humanDormant : Sprites.human);
         }
         // Future: creatures, tile improvements, etc.
     }

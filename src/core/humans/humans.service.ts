@@ -1,39 +1,97 @@
+import { EventEmitter } from '../../shared/event-emitter';
 import { Grid } from '../grid/grid.service';
 import { Human, HumansState } from './humans.model';
 
 /**
- * Humans service manages autonomous human settlements.
- * Humans respond to environmental changes and move/settle based on terrain.
+ * Payload emitted by the humanStatusChanged event when a human's survival status transitions.
  */
-export class HumansService {
-    private humans: Human[] = [];
+export interface HumanStatusChangedPayload {
+    id: string;
+    x: number;
+    y: number;
+    status: 'Active' | 'Dormant';
+}
 
-    // Grid parameter kept for future use in human settlement logic
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    constructor(_grid: Grid) {}
+const WATER_RADIUS = 3;
+const FOOD_RADIUS = 2;
+
+/**
+ * Humans service manages autonomous human settlements and their survival status.
+ * Extends EventEmitter to emit `humanStatusChanged` on every Active↔Dormant transition.
+ */
+export class HumansService extends EventEmitter {
+    private humans: Human[] = [];
+    private grid: Grid;
 
     /**
-     * Update human positions and states during Divine Pulse.
-     * Humans respond to nearby terrain changes.
+     * Create the service.
+     * @param grid - Grid reference used for Chebyshev radius lookups during necessity checks
+     */
+    constructor(grid: Grid) {
+        super();
+        this.grid = grid;
+    }
+
+    /**
+     * Update every human's survival status during a Divine Pulse.
+     * Checks water (radius 3) and food (radius 2) against Active terrain cells.
+     * Emits `humanStatusChanged` only when a human's status actually changes.
      */
     update(): void {
-        // For v0.1, humans are placeholders
-        // Future: implement pathfinding, settlement behavior, reproduction
         for (const human of this.humans) {
-            this.updateHuman(human);
+            this.checkNecessities(human);
         }
     }
 
     /**
-     * Update a single human's state
+     * Evaluate and apply the survival status for one human.
+     * Emits `humanStatusChanged` and logs to console on any transition.
+     *
+     * @param human - The human whose position is evaluated
      */
-    private updateHuman(human: Human): void {
-        // Placeholder: In v0.1, humans don't move yet
-        // Future implementation will check nearby cells and decide movement
+    private checkNecessities(human: Human): void {
+        const newStatus = this.computeStatus(human);
+        if (newStatus !== human.status) {
+            human.status = newStatus;
+            console.log(`Human ${human.id} at (${human.x}, ${human.y}) → ${newStatus}`);
+            this.emit('humanStatusChanged', {
+                id: human.id,
+                x: human.x,
+                y: human.y,
+                status: newStatus,
+            } as HumanStatusChangedPayload);
+        }
     }
 
     /**
-     * Add a human to the world
+     * Determine whether a human's survival needs are met based on nearby Active terrain.
+     * Returns 'Active' if both water (radius 3) and food (radius 2) are found, 'Dormant' otherwise.
+     *
+     * @param human - The human whose grid position is used as the search center
+     */
+    private computeStatus(human: Human): 'Active' | 'Dormant' {
+        const waterCells = this.grid.getCellsInRadius(human.x, human.y, WATER_RADIUS);
+        const hasWater = waterCells.some(
+            cell => cell.state === 'Active' && cell.terrainType === 'Water'
+        );
+
+        const foodCells = this.grid.getCellsInRadius(human.x, human.y, FOOD_RADIUS);
+        const hasFood = foodCells.some(
+            cell =>
+                cell.state === 'Active' &&
+                (cell.terrainType === 'Meadow' || cell.terrainType === 'Fertile Plain')
+        );
+
+        return hasWater && hasFood ? 'Active' : 'Dormant';
+    }
+
+    /**
+     * Add a human to the world.
+     * New humans start as Active (before the first necessity check runs).
+     *
+     * @param id - Unique identifier for the human
+     * @param x - Column index
+     * @param y - Row index
      */
     addHuman(id: string, x: number, y: number): void {
         const newHuman: Human = {
@@ -41,26 +99,27 @@ export class HumansService {
             x,
             y,
             state: 'idle',
+            status: 'Active',
         };
         this.humans.push(newHuman);
     }
 
     /**
-     * Get all humans
+     * Get a shallow copy of all humans.
      */
     getHumans(): Human[] {
         return [...this.humans];
     }
 
     /**
-     * Get human count
+     * Get the total number of humans.
      */
     getCount(): number {
         return this.humans.length;
     }
 
     /**
-     * Get state snapshot
+     * Get a snapshot of the humans system state.
      */
     getState(): HumansState {
         return {
@@ -69,14 +128,24 @@ export class HumansService {
         };
     }
 
+    /**
+     * Serialize to a JSON-compatible object.
+     */
     toJSON(): { humans: Human[] } {
         return { humans: this.humans.map(h => ({ ...h })) };
     }
 
+    /**
+     * Reconstruct a HumansService from serialized data.
+     * Defaults `status` to 'Active' for records that predate this field.
+     *
+     * @param data - Serialized humans data
+     * @param grid - Grid reference for the restored service
+     */
     static fromJSON(data: { humans: Human[] }, grid: Grid): HumansService | null {
         if (!data || !Array.isArray(data.humans)) return null;
         const service = new HumansService(grid);
-        service.humans = data.humans.map(h => ({ ...h }));
+        service.humans = data.humans.map(h => ({ ...h, status: h.status ?? 'Active' }));
         return service;
     }
 }
