@@ -79,5 +79,6 @@ Sprites.fertilePlainDormant.tint = dormantTint
 Sprites.sacredGroveDormant.tint = dormantTint
 Sprites.footHillDormant.tint = dormantTint
 Sprites.hiddenTempleDormant.tint = dormantTint
-Sprites.humanDormant.tint = dormantTint
+// no tint, to recognize better against active human
+// Sprites.humanDormant.tint = dormantTint
 
