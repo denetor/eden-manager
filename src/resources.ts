@@ -2,28 +2,35 @@ import {Color, ImageSource, Loader} from "excalibur";
 
 // It is convenient to put your resources in one place
 export const Resources = {
-  Sword: new ImageSource("./images/sword.png"), // Vite public/ directory serves the root images
   tiles_selected: new ImageSource('./images/tiles/selected-cell.png'),
   tiles_veiled: new ImageSource('./images/tiles/floor-veiled-01.png'),
   tiles_empty: new ImageSource('./images/tiles/floor-empty-01.png'),
-  tiles_meadow: new ImageSource('./images/tiles/floor-meadow-01.png'),
-  tiles_meadow_dormant: new ImageSource('./images/tiles/floor-meadow-01-dormant.png'),
-  tiles_water: new ImageSource('./images/tiles/floor-water-01.png'),
-  tiles_water_dormant: new ImageSource('./images/tiles/floor-water-01-dormant.png'),
+  tiles_meadow: new ImageSource('./images/tiles/floor-meadow-02.png'),
+  tiles_meadow_dormant: new ImageSource('./images/tiles/floor-meadow-02-dormant.png'),
+  tiles_water: new ImageSource('./images/tiles/floor-water-02.png'),
+  tiles_water_dormant: new ImageSource('./images/tiles/floor-water-02-dormant.png'),
   tiles_mountain: new ImageSource('./images/tiles/floor-mountain-01.png'),
   tiles_mountain_dormant: new ImageSource('./images/tiles/floor-mountain-01-dormant.png'),
   tiles_forest: new ImageSource('./images/tiles/floor-forest-01.png'),
   tiles_forest_dormant: new ImageSource('./images/tiles/floor-forest-01-dormant.png'),
   tiles_ruins: new ImageSource('./images/tiles/floor-ruins-01.png'),
   tiles_ruins_dormant: new ImageSource('./images/tiles/floor-ruins-01-dormant.png'),
-  tiles_fertile_plain: new ImageSource('./images/tiles/floor-fertile-plain-01.png'),
-  tiles_fertile_plain_dormant: new ImageSource('./images/tiles/floor-fertile-plain-01-dormant.png'),
+  tiles_fertile_plain: new ImageSource('./images/tiles/floor-fertile-plain-02.png'),
+  tiles_fertile_plain_dormant: new ImageSource('./images/tiles/floor-fertile-plain-02-dormant.png'),
   tiles_sacred_grove: new ImageSource('./images/tiles/floor-sacred-grove-01.png'),
   tiles_sacred_grove_dormant: new ImageSource('./images/tiles/floor-sacred-grove-01-dormant.png'),
-  tiles_foothill: new ImageSource('./images/tiles/floor-foothill-01.png'),
-  tiles_foothill_dormant: new ImageSource('./images/tiles/floor-foothill-01-dormant.png'),
+  tiles_foothill: new ImageSource('./images/tiles/floor-foothill-02.png'),
+  tiles_foothill_dormant: new ImageSource('./images/tiles/floor-foothill-02-dormant.png'),
   tiles_hidden_temple: new ImageSource('./images/tiles/floor-hidden-temple-01.png'),
   tiles_hidden_temple_dormant: new ImageSource('./images/tiles/floor-hidden-temple-01-dormant.png'),
+  tiles_mill: new ImageSource('./images/tiles/floor-mill-01.png'),
+  tiles_mill_dormant: new ImageSource('./images/tiles/floor-mill-01-dormant.png'),
+  tiles_temple: new ImageSource('./images/tiles/floor-temle-01.png'),
+  tiles_temple_dormant: new ImageSource('./images/tiles/floor-temple-01-dormant.png'),
+  tiles_tower: new ImageSource('./images/tiles/floor-tower-01.png'),
+  tiles_tower_dormant: new ImageSource('./images/tiles/floor-tower-01-dormant.png'),
+  tiles_farm: new ImageSource('./images/tiles/floor-farm-01.png'),
+  tiles_farm_dormant: new ImageSource('./images/tiles/floor-farm-01-dormant.png'),
   human: new ImageSource('./images/humans/human-01.png'),
   human_dormant: new ImageSource('./images/humans/human-01-dormant.png'),
 } as const; // the 'as const' is a neat typescript trick to get strong typing on your resources.
@@ -60,6 +67,14 @@ export const Sprites = {
   footHillDormant: Resources.tiles_foothill_dormant.toSprite(),
   hiddenTemple: Resources.tiles_hidden_temple.toSprite(),
   hiddenTempleDormant: Resources.tiles_hidden_temple_dormant.toSprite(),
+  mill: Resources.tiles_mill.toSprite(),
+  millDormant: Resources.tiles_mill_dormant.toSprite(),
+  temple: Resources.tiles_temple.toSprite(),
+  templeDormant: Resources.tiles_temple_dormant.toSprite(),
+  tower: Resources.tiles_tower.toSprite(),
+  towerDormant: Resources.tiles_tower_dormant.toSprite(),
+  farm: Resources.tiles_farm.toSprite(),
+  farmDormant: Resources.tiles_farm_dormant.toSprite(),
   // humans
   human: Resources.human.toSprite(),
   humanDormant: Resources.human_dormant.toSprite(),
@@ -79,6 +94,10 @@ Sprites.fertilePlainDormant.tint = dormantTint
 Sprites.sacredGroveDormant.tint = dormantTint
 Sprites.footHillDormant.tint = dormantTint
 Sprites.hiddenTempleDormant.tint = dormantTint
+Sprites.millDormant.tint = dormantTint
+Sprites.templeDormant.tint = dormantTint
+Sprites.towerDormant.tint = dormantTint
+Sprites.farmDormant.tint = dormantTint
 // no tint, to recognize better against active human
 // Sprites.humanDormant.tint = dormantTint
 
