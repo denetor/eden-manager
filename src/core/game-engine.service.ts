@@ -1,6 +1,8 @@
 import { Grid } from './grid/grid.service';
 import { TerrainType } from './grid/grid.model';
 import { SynergyEngine } from './synergy/synergy.service';
+import { BuildingSynergyService } from './synergy/building-synergy.service';
+import { BUILDING_MANA_YIELD } from './synergy/building-synergy.model';
 import { ManaService } from './mana/mana.service';
 import { HumansService } from './humans/humans.service';
 import { CreaturesService } from './creatures/creatures.service';
@@ -27,6 +29,7 @@ const TERRAIN_MANA_YIELD: Record<TerrainType, number> = {
 export class GameEngine {
     private grid: Grid;
     private synergy: SynergyEngine;
+    private buildingSynergy: BuildingSynergyService;
     private mana: ManaService;
     private humans: HumansService;
     private creatures: CreaturesService;
@@ -36,12 +39,14 @@ export class GameEngine {
     constructor(
         grid: Grid,
         synergy: SynergyEngine,
+        buildingSynergy: BuildingSynergyService,
         mana: ManaService,
         humans: HumansService,
         creatures: CreaturesService
     ) {
         this.grid = grid;
         this.synergy = synergy;
+        this.buildingSynergy = buildingSynergy;
         this.mana = mana;
         this.humans = humans;
         this.creatures = creatures;
@@ -58,9 +63,11 @@ export class GameEngine {
      */
     divinePulse(): void {
         this.synergy.apply();
+        this.buildingSynergy.apply();
         this.humans.update();
         this.creatures.update();
         this.collectTerrainMana();
+        this.collectBuildingsMana();
         this.mana.regenerate();
         this.grid.clearDirty();
     }
@@ -70,6 +77,21 @@ export class GameEngine {
         for (const cell of this.grid.getAllCells()) {
             if (cell.state === 'Active') {
                 total += TERRAIN_MANA_YIELD[cell.terrainType];
+            }
+        }
+        if (total > 0) {
+            this.mana.add(total);
+        }
+    }
+
+    private collectBuildingsMana(): void {
+        const humans = this.humans.getHumans();
+        let total = 0;
+        for (const cell of this.grid.getAllCells()) {
+            if (cell.state !== 'Active' || !cell.building) continue;
+            const hasActiveHuman = humans.some(h => h.x === cell.x && h.y === cell.y && h.status === 'Active');
+            if (hasActiveHuman) {
+                total += BUILDING_MANA_YIELD[cell.building];
             }
         }
         if (total > 0) {

@@ -1,4 +1,5 @@
 import { EventEmitter } from '../../shared/event-emitter';
+import { BuildingType } from '../synergy/building-synergy.model';
 import { Cell, CellState, TerrainType } from './grid.model';
 
 /**
@@ -243,6 +244,19 @@ export class Grid extends EventEmitter {
     }
 
     /**
+     * Place or remove a building on a cell.
+     * Emits cellChanged so the renderer updates the tile immediately.
+     * Does nothing if the coordinate is out-of-bounds.
+     */
+    setBuilding(x: number, y: number, building: BuildingType | undefined): void {
+        const cell = this.getCell(x, y);
+        if (!cell) return;
+        cell.building = building;
+        this.markDirty(x, y);
+        this.emit('cellChanged', { x, y, cell } as CellChangedPayload);
+    }
+
+    /**
      * Mark a cell as dirty (modified in current pulse).
      * Dirty tracking enables efficient synergy checks.
      */
@@ -312,6 +326,7 @@ export class Grid extends EventEmitter {
             if (currentCell && loadedCell) {
                 currentCell.state = loadedCell.state;
                 currentCell.terrainType = loadedCell.terrainType;
+                currentCell.building = loadedCell.building;
             }
         }
 

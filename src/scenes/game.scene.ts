@@ -7,9 +7,11 @@ import {
 import {Grid} from '../core/grid/grid.service';
 import {GameEngine} from '../core/game-engine.service';
 import {SynergyEngine} from '../core/synergy/synergy.service';
+import {BuildingSynergyService} from '../core/synergy/building-synergy.service';
 import {ManaService} from '../core/mana/mana.service';
 import {HumansService, HumanStatusChangedPayload} from '../core/humans/humans.service';
 import {CreaturesService} from '../core/creatures/creatures.service';
+import {BuildingType} from '../core/synergy/building-synergy.model';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
@@ -57,7 +59,8 @@ export class GameScene extends Scene {
         const mana = new ManaService(50, 100, 1);
         const humans = this.persistenceService.loadHumans(grid) ?? new HumansService(grid);
         const creatures = new CreaturesService(grid);
-        this.gameEngine = new GameEngine(grid, synergy, mana, humans, creatures);
+        const buildingSynergy = new BuildingSynergyService(grid, humans);
+        this.gameEngine = new GameEngine(grid, synergy, buildingSynergy, mana, humans, creatures);
 
         // 3. Create IsometricMap for rendering the grid
         this.isometricMap = new IsometricMap({
@@ -212,13 +215,26 @@ export class GameScene extends Scene {
      */
     private setComposedGraphic(tile: IsometricTile, cell: Cell, selected?: boolean): void {
         tile.clearGraphics();
-        tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+        if (cell.state === 'Active' && cell.building) {
+            tile.addGraphic(this.getBuildingSprite(cell.building));
+        } else {
+            tile.addGraphic(this.getCellSprite(cell.state, cell.terrainType));
+        }
         if (cell.state === 'Veiled') {
             tile.addGraphic(Sprites.veiled);
         }
         this.addEntityOverlays(tile, cell);
         if (selected) {
             tile.addGraphic(Sprites.selected);
+        }
+    }
+
+    private getBuildingSprite(building: BuildingType): Graphic {
+        switch (building) {
+            case 'Farm':   return Sprites.farm;
+            case 'Mill':   return Sprites.mill;
+            case 'Shrine': return Sprites.shrine;
+            case 'Tower':  return Sprites.tower;
         }
     }
 

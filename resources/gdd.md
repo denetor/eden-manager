@@ -59,7 +59,7 @@ through **Divine Pulses**—rhythmic moments when the world "breathes," creature
 2. You spend mana to create a **Freshwater Spring** on high ground nearby.
 3. You spend more mana to shift the adjacent **Barren Field** into **Fertile Plain**.
 4. A Divine Pulse occurs.
-5. Humans detect water and fertile soil, automatically building a **Mill** and **Farmland**.
+5. Humans detect water and fertile soil, automatically building a **Farm** on the Fertile Plain.
 6. The farmland generates passive mana for you.
 7. Your mana pool regenerates, allowing further intervention.
 
@@ -75,9 +75,10 @@ Mana is the only currency in the game. It represents your connection to the worl
 #### Mana Generation
 - **Passive Regeneration**: A small amount each Divine Pulse (baseline).
 - **Human Offerings**: Each human structure generates mana continuously. Examples:
-  - **Mill** (built on water + fertile land): 2 mana per pulse.
-  - **Observatory** (built on ruins): 3 mana per pulse + reveals hidden terrains nearby.
-  - **Sacred Grove** (enchanted forest): 1 mana per pulse + attracts legendary creatures.
+  - **Farm** (built on Fertile Plain near Water): 2 mana per pulse.
+  - **Mill** (Farm upgraded when still near Water): 3 mana per pulse.
+  - **Shrine** (built on Sacred Grove): 3 mana per pulse + attracts legendary creatures.
+  - **Tower** (built on Foothill): 1 mana per pulse.
 - **Divine Monuments**: When humanity reaches high contentment in a region, they spontaneously build altars that generate mana bursts.
 - **Memory Fragments**: Rare discoveries that grant permanent mana-generation bonuses.
 
@@ -142,16 +143,28 @@ adjacency patterns, **Resonance** effects occur—automatic transformations or b
 
 #### Synergy Table
 
-| Pattern | Result | Human Reaction | Mana Bonus |
-|---------|--------|-----------------|------------|
-| **Water + Meadow** | Meadow becomes Fertile Plain | Build farm (generates 2 mana/pulse) | +1 mana/pulse |
-| **Fertile Plain + Fertile Plain** | Both become Super-Fertile (visual upgrade) | Build granary (stores excess food, generates 3 mana/pulse) | +2 mana/pulse |
-| **Forest + Forest + Forest** (3+ contiguous) | Becomes Sacred Grove | Build shrine (generates 3 mana/pulse + attracts creatures) | +2 mana/pulse |
-| **Mountain + Meadow** | Meadow becomes Foothill | Build guard tower / observation post (generates 1 mana/pulse, reveals fog in wider radius) | +0.5 mana/pulse |
-| **Ruins + Forest** | Ruins become Hidden Temple | Build research lab (unlocks hybrid terrain types for reshaping) | +2 mana/pulse |
-| **Water + Volcanic Ash** | Ash becomes Fertile Obsidian (rare) | Build blacksmith / forge (crafts rare resources, attracts specialized workers) | +3 mana/pulse |
-| **Grassland + Water** | Creates Wetland (intermediate) | Build fishing village (generates 1.5 mana/pulse) | +0.5 mana/pulse |
-| **Sacred Grove + Sacred Grove** (adjacent) | Forms Sanctuary | Build grand temple (legendary human structure, generates 5 mana/pulse, extremely rare) | +4 mana/pulse |
+| Pattern | Result | Mana Bonus |
+|---------|--------|------------|
+| **Water + Meadow** | Meadow becomes Fertile Plain | +1 mana/pulse |
+| **Forest + Forest + Forest** (3+ contiguous) | Becomes Sacred Grove | +2 mana/pulse |
+| **Mountain + Meadow** | Meadow becomes Foothill | +0.5 mana/pulse |
+| **Ruins + Forest** | Ruins become Hidden Temple | +2 mana/pulse |
+| **Water + Volcanic Ash** | Ash becomes Fertile Obsidian (rare) | +3 mana/pulse |
+| **Grassland + Water** | Creates Wetland (intermediate) | +0.5 mana/pulse |
+| **Sacred Grove + Sacred Grove** (adjacent) | Forms Sanctuary | +4 mana/pulse |
+
+#### Human Building Rules
+
+When an Active human group is present on a cell, it will autonomously construct one structure based on the cell type and nearby terrain. One structure per cell; upgrades replace the existing structure.
+
+| Cell Terrain | Condition | Structure Built | Mana/Pulse |
+|--------------|-----------|-----------------|------------|
+| **Fertile Plain** | Human present + Water within 3 cells | Farm | 2 |
+| **Meadow or Fertile Plain** | Human present + Farm on orthogonally adjacent cell + Water within 3 cells | Mill | 3 |
+| **Sacred Grove** | Human present | Shrine | 3 |
+| **Foothill** | Human present | Tower | 1 |
+
+_"Near Water" means Water terrain in Active state within Chebyshev radius 3. "Adjacent Farm" means a cell with a Farm building in one of the 4 orthogonal directions (no diagonals). "Plain" in design notes maps to `Meadow` terrain type in code._
 
 #### No "Wrong" Combinations
 Importantly, no adjacency creates a *negative* outcome. An excess of forests doesn't burn the world; it just means humans 
@@ -189,8 +202,8 @@ Humans in Eden Manager are **not puppets**. They follow simple, emergent rules t
    - Meeting a need "wakes" them, resuming building and mana generation.
 
 2. **Opportunity (Growth):**
-   - When basic needs are met, humans examine all cells within a 4-cell radius for synergy opportunities.
-   - Each terrain type has a "preferred construction" if adjacent conditions are met.
+   - When basic needs are met, Active humans examine their current cell and build a structure if conditions are met.
+   - Building rules: Fertile Plain + Water nearby → Farm; Meadow/Fertile Plain + adjacent Farm + Water nearby → Mill; Sacred Grove → Shrine; Foothill → Tower.
    - Humans build autonomously; you observe, you don't command.
 
 3. **Desire (Aspiration):**

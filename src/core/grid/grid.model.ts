@@ -8,6 +8,8 @@ export type CellState = 'Veiled' | 'Dormant' | 'Active';
  */
 export type TerrainType = 'Meadow' | 'Forest' | 'Mountain' | 'Water' | 'Ruins' | 'Fertile Plain' | 'Sacred Grove' | 'Foothill' | 'Hidden Temple';
 
+import { BuildingType } from '../synergy/building-synergy.model';
+
 /**
  * A single cell in the grid
  */
@@ -16,4 +18,5 @@ export interface Cell {
     terrainType: TerrainType;
     x: number;
     y: number;
+    building?: BuildingType;
 }

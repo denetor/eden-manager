@@ -1,6 +1,7 @@
 import { GameEngine } from './game-engine.service';
 import { Grid } from './grid/grid.service';
 import { SynergyEngine } from './synergy/synergy.service';
+import { BuildingSynergyService } from './synergy/building-synergy.service';
 import { ManaService } from './mana/mana.service';
 import { HumansService } from './humans/humans.service';
 import { CreaturesService } from './creatures/creatures.service';
@@ -8,6 +9,7 @@ import { CreaturesService } from './creatures/creatures.service';
 describe('GameEngine', () => {
     let grid: Grid;
     let synergy: SynergyEngine;
+    let buildingSynergy: BuildingSynergyService;
     let mana: ManaService;
     let humans: HumansService;
     let creatures: CreaturesService;
@@ -19,7 +21,8 @@ describe('GameEngine', () => {
         mana = new ManaService(50, 100, 10);
         humans = new HumansService(grid);
         creatures = new CreaturesService(grid);
-        engine = new GameEngine(grid, synergy, mana, humans, creatures);
+        buildingSynergy = new BuildingSynergyService(grid, humans);
+        engine = new GameEngine(grid, synergy, buildingSynergy, mana, humans, creatures);
     });
 
     describe('Initialization', () => {
@@ -514,11 +517,13 @@ describe('GameEngine', () => {
         it('should cap mana at max when terrain yield would overflow', () => {
             const highMana = new ManaService(95, 100, 10);
             const highGrid = new Grid(16, 16);
+            const highHumans = new HumansService(highGrid);
             const highEngine = new GameEngine(
                 highGrid,
                 new SynergyEngine(highGrid),
+                new BuildingSynergyService(highGrid, highHumans),
                 highMana,
-                new HumansService(highGrid),
+                highHumans,
                 new CreaturesService(highGrid)
             );
             highGrid.unveil(0, 0);

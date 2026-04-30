@@ -25,8 +25,8 @@ export const Resources = {
   tiles_hidden_temple_dormant: new ImageSource('./images/tiles/floor-hidden-temple-01-dormant.png'),
   tiles_mill: new ImageSource('./images/tiles/floor-mill-01.png'),
   tiles_mill_dormant: new ImageSource('./images/tiles/floor-mill-01-dormant.png'),
-  tiles_temple: new ImageSource('./images/tiles/floor-temle-01.png'),
-  tiles_temple_dormant: new ImageSource('./images/tiles/floor-temple-01-dormant.png'),
+  tiles_shrine: new ImageSource('./images/tiles/floor-temle-01.png'),
+  tiles_shrine_dormant: new ImageSource('./images/tiles/floor-temple-01-dormant.png'),
   tiles_tower: new ImageSource('./images/tiles/floor-tower-01.png'),
   tiles_tower_dormant: new ImageSource('./images/tiles/floor-tower-01-dormant.png'),
   tiles_farm: new ImageSource('./images/tiles/floor-farm-01.png'),
@@ -69,8 +69,8 @@ export const Sprites = {
   hiddenTempleDormant: Resources.tiles_hidden_temple_dormant.toSprite(),
   mill: Resources.tiles_mill.toSprite(),
   millDormant: Resources.tiles_mill_dormant.toSprite(),
-  temple: Resources.tiles_temple.toSprite(),
-  templeDormant: Resources.tiles_temple_dormant.toSprite(),
+  shrine: Resources.tiles_shrine.toSprite(),
+  shrineDormant: Resources.tiles_shrine_dormant.toSprite(),
   tower: Resources.tiles_tower.toSprite(),
   towerDormant: Resources.tiles_tower_dormant.toSprite(),
   farm: Resources.tiles_farm.toSprite(),
@@ -95,7 +95,7 @@ Sprites.sacredGroveDormant.tint = dormantTint
 Sprites.footHillDormant.tint = dormantTint
 Sprites.hiddenTempleDormant.tint = dormantTint
 Sprites.millDormant.tint = dormantTint
-Sprites.templeDormant.tint = dormantTint
+Sprites.shrineDormant.tint = dormantTint
 Sprites.towerDormant.tint = dormantTint
 Sprites.farmDormant.tint = dormantTint
 // no tint, to recognize better against active human

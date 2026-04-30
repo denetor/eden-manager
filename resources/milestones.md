@@ -407,13 +407,11 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.21 — Human Auto-Building
 **Goal:** Humans automatically build structures based on surroundings.
 
-- [ ] Define human structures: Farm, Mill, Shrine, Tower, etc.
-- [ ] Trigger conditions (e.g., "If Fertile Plain + humans + Active, build Farm")
-- [ ] On pulse: check all human groups; apply building rules
-- [ ] Each structure has mana generation bonus
-- [ ] Visual: place structure marker on cell in isometric
-- [ ] Log building events to console
-- [ ] **Verification:** Awaken Fertile Plain + Water + Meadow; place humans; watch them build on pulse; mana regen increases
+- [x] Define human structures: Farm, Mill, Shrine, Tower, etc.
+- [x] Trigger conditions (e.g., "If Fertile Plain + humans + Active, build Farm")
+- [x] On pulse: check all human groups; apply building rules
+- [x] Each structure has mana generation bonus
+- [x] Visual: place structure marker on cell in isometric
 
 **Files to update:**
 - `src/core/humans/humans.service.ts` — Implement building logic
