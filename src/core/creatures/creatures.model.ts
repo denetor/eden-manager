@@ -1,18 +1,12 @@
-/**
- * Legendary creature in the world
- */
+export type CreatureType = 'StoneGiant' | 'SeaSerpent' | 'LuminousSwarm';
+
 export interface Creature {
     id: string;
+    type: CreatureType;
     x: number;
     y: number;
-    name: string;
-    health: number;
-    maxHealth: number;
 }
 
-/**
- * Creatures system state
- */
 export interface CreaturesState {
     creatures: Creature[];
     count: number;

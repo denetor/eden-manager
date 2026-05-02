@@ -25,7 +25,7 @@ export const Resources = {
   tiles_hidden_temple_dormant: new ImageSource('./images/tiles/floor-hidden-temple-01-dormant.png'),
   tiles_mill: new ImageSource('./images/tiles/floor-mill-01.png'),
   tiles_mill_dormant: new ImageSource('./images/tiles/floor-mill-01-dormant.png'),
-  tiles_shrine: new ImageSource('./images/tiles/floor-temle-01.png'),
+  tiles_shrine: new ImageSource('./images/tiles/floor-temple-01.png'),
   tiles_shrine_dormant: new ImageSource('./images/tiles/floor-temple-01-dormant.png'),
   tiles_tower: new ImageSource('./images/tiles/floor-tower-01.png'),
   tiles_tower_dormant: new ImageSource('./images/tiles/floor-tower-01-dormant.png'),
@@ -33,6 +33,11 @@ export const Resources = {
   tiles_farm_dormant: new ImageSource('./images/tiles/floor-farm-01-dormant.png'),
   human: new ImageSource('./images/humans/human-01.png'),
   human_dormant: new ImageSource('./images/humans/human-01-dormant.png'),
+  creature_stone_giant: new ImageSource('./images/creatures/stone-giant.png'),
+  creature_luminous_swarm: new ImageSource('./images/creatures/luminous-swarm.png'),
+  creature_sea_serpent: new ImageSource('./images/creatures/sea-serpent.png'),
+  creature_sky_whale: new ImageSource('./images/creatures/sky-whale.png'),
+  creature_deer: new ImageSource('./images/creatures/deer.png'),
 } as const; // the 'as const' is a neat typescript trick to get strong typing on your resources.
 // So when you type Resources.Sword -> ImageSource
 
@@ -78,6 +83,12 @@ export const Sprites = {
   // humans
   human: Resources.human.toSprite(),
   humanDormant: Resources.human_dormant.toSprite(),
+  // creatures
+  creatureStoneGiant: Resources.creature_stone_giant.toSprite(),
+  creatureLuminousSwarm: Resources.creature_luminous_swarm.toSprite(),
+  creatureSeaSerpent: Resources.creature_sea_serpent.toSprite(),
+  creatureSkyWhale: Resources.creature_sky_whale.toSprite(),
+  creatureDeer: Resources.creature_deer.toSprite(),
 }
 Sprites.selected.opacity = 0.5;
 Sprites.veiled.opacity = 0.85;

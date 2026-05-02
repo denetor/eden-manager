@@ -233,21 +233,27 @@ role; instead, they act as mobile blessings or dynamic elements.
 
 #### Creature Behavior Rules
 
-- Creatures only spawn in environments matching their nature.
-- Once active, they move according to simple deterministic or pseudo-random rules each Divine Pulse.
-- Where they move, they may trigger cascading effects (e.g., a Fire Spirit passing through grassland might accelerate its transformation, or a Water Serpent hydrating nearby drylands).
+- Creatures only spawn in environments matching their nature (see spawn conditions below).
+- Each Divine Pulse, each creature type has a **5% chance to spawn** if its conditions are met and no instance of that type already exists on the map.
+- **At most one creature of each type** may exist on the map at any time.
+- Spawn cells must be in **Active** state. When multiple cells qualify, the spawn cell is chosen at random.
+- Once active, creatures move according to simple deterministic or pseudo-random rules each Divine Pulse.
+- Where they move, they may trigger cascading effects (e.g., a Stone Giant levelling peaks into buildable plateaus, or a Sea Serpent hydrating nearby drylands).
 
-#### Placeholder Creature List
+#### Creature List (v1.0 scope)
 
-*(Note: Exact creatures TBD. Below are examples to establish pattern.)*
+| Creature | Spawn condition | Movement Pattern | Effect | Rarity |
+|----------|----------------|------------------|--------|--------|
+| **Stone Giant** | Active Mountain cell with 2+ orthogonal Mountain neighbors | Wanders mountain chains, occasionally levels peaks into buildable plateaus | Transforms Mountain cells into Foothills or Meadows, creating human settlement space | Rare |
+| **Luminous Swarm** | Active Sacred Grove cell | Drawn to high-harmony cells; glows beautifully | Any cell a swarm rests on for a full pulse receives a permanent +1 mana generation bonus | Rare |
+| **Sea Serpent** | Active Water cell | Flows downstream; spreads hydration influence wider than normal | Extends water influence +1 radius; attracts humans to adjacent cells | Uncommon |
 
-| Creature | Habitat | Movement Pattern | Effect | Rarity |
-|----------|---------|------------------|--------|--------|
-| **Stone Colossus** | Mountains | Wanders mountain chains, occasionally "levels" peaks into buildable plateaus | Transforms mountain cells into foothills or meadows, creating human settlement space | Rare |
-| **Luminous Swarm** (fireflies) | Forests + night | Drawn to high-harmony cells; glows beautifully | Any cell a swarm rests on for a full pulse receives a permanent +1 mana generation bonus | Rare |
-| **Water Serpent** | Rivers + wetlands | Flows downstream; spreads hydration influence wider than normal | Extends water influence +1 radius; attracts humans to adjacent cells | Uncommon |
-| **Sky Whale** | High altitudes (mountains + clouds) | Migrates across the map; rare and majestic | Any cell it passes receives a temporary fertility boost; visiting it is a bucket-list moment for humanity | Legendary |
-| **Verdant Deer Herd** | Forests + meadows | Grazes on meadows; attracted to lush areas | Enhances meadow fertility; marks territory with seasonal color shifts | Common |
+#### Deferred Creatures (post-v1.0)
+
+| Creature | Habitat | Effect | Rarity |
+|----------|---------|--------|--------|
+| **Sky Whale** | High altitudes (Mountain + clouds) | Any cell it passes receives a temporary fertility boost; a bucket-list moment for humanity | Legendary |
+| **Verdant Deer Herd** | Forest + Meadow | Enhances meadow fertility; marks territory with seasonal color shifts | Common |
 
 ---
 

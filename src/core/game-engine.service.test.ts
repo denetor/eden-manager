@@ -103,30 +103,22 @@ describe('GameEngine', () => {
     });
 
     describe('Creatures System Integration', () => {
-        it('should spawn creatures in the world', () => {
-            creatures.spawnCreature('c1', 'Phoenix', 5, 5, 100);
-            expect(creatures.getCount()).toBe(1);
+        it('should start with no creatures', () => {
+            expect(creatures.getCount()).toBe(0);
         });
 
-        it('should get all creatures', () => {
-            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
-            creatures.spawnCreature('c2', 'Dragon', 10, 10);
-            const allCreatures = creatures.getCreatures();
-            expect(allCreatures).toHaveLength(2);
-            expect(allCreatures[0].name).toBe('Phoenix');
-            expect(allCreatures[1].name).toBe('Dragon');
+        it('should return an empty creatures list initially', () => {
+            expect(creatures.getCreatures()).toHaveLength(0);
         });
 
-        it('should update creatures (placeholder in v0.1)', () => {
-            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
+        it('should not throw when update() is called with no qualifying cells', () => {
             expect(() => creatures.update()).not.toThrow();
         });
 
-        it('should get creatures state snapshot', () => {
-            creatures.spawnCreature('c1', 'Phoenix', 5, 5);
+        it('should return a state snapshot with count and creatures', () => {
             const state = creatures.getState();
-            expect(state.count).toBe(1);
-            expect(state.creatures).toHaveLength(1);
+            expect(state.count).toBe(0);
+            expect(state.creatures).toHaveLength(0);
         });
     });
 

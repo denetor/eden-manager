@@ -10,7 +10,7 @@ import {SynergyEngine} from '../core/synergy/synergy.service';
 import {BuildingSynergyService} from '../core/synergy/building-synergy.service';
 import {ManaService} from '../core/mana/mana.service';
 import {HumansService, HumanStatusChangedPayload} from '../core/humans/humans.service';
-import {CreaturesService} from '../core/creatures/creatures.service';
+import {CreaturesService, CreatureSpawnedPayload} from '../core/creatures/creatures.service';
 import {BuildingType} from '../core/synergy/building-synergy.model';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
@@ -58,7 +58,7 @@ export class GameScene extends Scene {
         const synergy = new SynergyEngine(grid);
         const mana = new ManaService(50, 100, 1);
         const humans = this.persistenceService.loadHumans(grid) ?? new HumansService(grid);
-        const creatures = new CreaturesService(grid);
+        const creatures = this.persistenceService.loadCreatures(grid) ?? new CreaturesService(grid);
         const buildingSynergy = new BuildingSynergyService(grid, humans);
         this.gameEngine = new GameEngine(grid, synergy, buildingSynergy, mana, humans, creatures);
 
@@ -88,6 +88,7 @@ export class GameScene extends Scene {
         // 5. Subscribe to cell change events
         this.subscribeToGridEvents(grid);
         this.subscribeToHumansEvents(this.gameEngine.getHumans());
+        this.subscribeToCreaturesEvents(this.gameEngine.getCreatures());
 
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
@@ -178,6 +179,23 @@ export class GameScene extends Scene {
     }
 
     /**
+     * Subscribe to CreaturesService events to refresh tiles when a creature spawns.
+     *
+     * @param creatures - The CreaturesService instance emitting creatureSpawned events
+     */
+    private subscribeToCreaturesEvents(creatures: CreaturesService): void {
+        creatures.on('creatureSpawned', (payload: CreatureSpawnedPayload) => {
+            const tile = this.isometricMap.getTile(payload.x, payload.y);
+            if (tile) {
+                const cell = this.gameEngine.getGrid().getCell(payload.x, payload.y);
+                if (cell) {
+                    this.setComposedGraphic(tile, cell, payload.x === this.selectedX && payload.y === this.selectedY);
+                }
+            }
+        });
+    }
+
+    /**
      * Subscribe to Grid events to update tile graphics when cell state changes.
      */
     private subscribeToGridEvents(grid: Grid): void {
@@ -251,7 +269,21 @@ export class GameScene extends Scene {
         if (humanAtCell) {
             tile.addGraphic(humanAtCell.status === 'Dormant' ? Sprites.humanDormant : Sprites.human);
         }
-        // Future: creatures, tile improvements, etc.
+
+        const creatures = this.gameEngine.getCreatures().getCreatures();
+        const creatureAtCell = creatures.find(c => c.x === cell.x && c.y === cell.y);
+        if (creatureAtCell) {
+            tile.addGraphic(this.getCreatureSprite(creatureAtCell.type));
+        }
+    }
+
+    private getCreatureSprite(type: string) {
+        switch (type) {
+            case 'StoneGiant':    return Sprites.creatureStoneGiant;
+            case 'SeaSerpent':    return Sprites.creatureSeaSerpent;
+            case 'LuminousSwarm': return Sprites.creatureLuminousSwarm;
+            default:              return Sprites.creatureStoneGiant;
+        }
     }
 
     /**
@@ -460,6 +492,7 @@ export class GameScene extends Scene {
         this.gameEngine.divinePulse();
         this.persistenceService.saveGrid(this.gameEngine.getGrid());
         this.persistenceService.saveHumans(this.gameEngine.getHumans());
+        this.persistenceService.saveCreatures(this.gameEngine.getCreatures());
     }
 
 
