@@ -75,6 +75,7 @@ export class CreaturesService extends EventEmitter {
                 pos.x >= 0 && pos.x < this.grid.getWidth() &&
                 pos.y >= 0 && pos.y < this.grid.getHeight()
             )
+            .filter(pos => this.grid.getCell(pos.x, pos.y)?.state === 'Active')
             .filter(pos => !this.creatures.some(c => c.id !== creature.id && c.x === pos.x && c.y === pos.y));
 
         if (validNeighbors.length === 0) return;

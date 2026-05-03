@@ -355,12 +355,12 @@ describe('CreaturesService', () => {
         });
 
         it('creature moves to a valid orthogonal neighbor when move probability reached (>= 0.5)', () => {
+            makeActive(5, 4, 'Meadow'); // north neighbor must be Active to be valid
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
             }, grid)!;
 
-            // Directions order: north(5,4), south(5,6), west(4,5), east(6,5)
-            // mockReturnValueOnce(0) for neighbor index → Math.floor(0 * 4) = 0 → (5,4)
+            // Only (5,4) is Active → validNeighbors = [(5,4)], index 0 → (5,4)
             jest.spyOn(Math, 'random')
                 .mockReturnValueOnce(0.6)   // move decision: >= 0.5 → attempt
                 .mockReturnValueOnce(0)     // neighbor index 0 → (5, 4)
@@ -374,12 +374,14 @@ describe('CreaturesService', () => {
         });
 
         it('creature does not move outside map bounds', () => {
-            // (0,0): north and west are out of bounds; valid = south(0,1) and east(1,0)
+            // (0,0): north and west are out of bounds; in-bounds = south(0,1) and east(1,0)
+            makeActive(0, 1, 'Meadow');
+            makeActive(1, 0, 'Meadow');
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 }]
             }, grid)!;
 
-            // index 0 of valid neighbors [south(0,1), east(1,0)] → (0,1)
+            // index 0 of valid Active neighbors [south(0,1), east(1,0)] → (0,1)
             jest.spyOn(Math, 'random')
                 .mockReturnValueOnce(0.6)   // move decision
                 .mockReturnValueOnce(0)     // picks (0,1)
@@ -392,8 +394,10 @@ describe('CreaturesService', () => {
             expect(creature.y).toBe(1);
         });
 
-        it('creature stays when all valid neighbors are occupied', () => {
-            // (0,0) valid in-bounds neighbors: south(0,1) and east(1,0) — both occupied
+        it('creature stays when all valid Active neighbors are occupied', () => {
+            // (0,0) in-bounds Active neighbors: south(0,1) and east(1,0) — both occupied
+            makeActive(0, 1, 'Meadow');
+            makeActive(1, 0, 'Meadow');
             const testService = CreaturesService.fromJSON({
                 creatures: [
                     { id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 },
@@ -403,11 +407,9 @@ describe('CreaturesService', () => {
             }, grid)!;
 
             jest.spyOn(Math, 'random')
-                .mockReturnValueOnce(0.6)   // sea: attempt (no valid → stays, no neighbor call)
-                .mockReturnValueOnce(0.6)   // stone: attempt
-                .mockReturnValueOnce(0)     // stone: pick neighbor
-                .mockReturnValueOnce(0.6)   // ls: attempt
-                .mockReturnValueOnce(0)     // ls: pick neighbor
+                .mockReturnValueOnce(0.6)   // sea: attempt (Active neighbors all occupied → stays)
+                .mockReturnValueOnce(0.4)   // stone: stay
+                .mockReturnValueOnce(0.4)   // ls: stay
                 .mockReturnValueOnce(0.99)  // sea: no despawn
                 .mockReturnValueOnce(0.99)  // stone: no despawn
                 .mockReturnValueOnce(0.99); // ls: no despawn
@@ -420,6 +422,7 @@ describe('CreaturesService', () => {
         });
 
         it('emits creatureMoved event with correct payload', () => {
+            makeActive(5, 4, 'Meadow'); // north neighbor must be Active
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
             }, grid)!;
@@ -443,6 +446,64 @@ describe('CreaturesService', () => {
                 toX: 5,
                 toY: 4,
             });
+        });
+
+        it('creature does not move to a Veiled neighbor', () => {
+            // grid is all Veiled by default; all neighbors at (5,5) are Veiled
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt: no valid Active neighbors → stays
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(5);
+        });
+
+        it('creature does not move to a Dormant neighbor', () => {
+            makeDormant(5, 4, 'Meadow');
+            makeDormant(5, 6, 'Meadow');
+            makeDormant(4, 5, 'Meadow');
+            makeDormant(6, 5, 'Meadow');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt: no valid Active neighbors → stays
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(5);
+        });
+
+        it('creature moves only to Active neighbors, skipping Veiled and Dormant ones', () => {
+            // north(5,4): Veiled (default), south(5,6): Dormant, west(4,5): Active, east(6,5): Veiled
+            makeDormant(5, 6, 'Meadow');
+            makeActive(4, 5, 'Meadow');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            // validNeighbors = [(4,5)]; index 0 → (4,5)
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt
+                .mockReturnValueOnce(0)     // picks only valid neighbor (4,5)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(4);
+            expect(creature.y).toBe(5);
         });
 
         it('does not emit creatureMoved when creature stays', () => {
