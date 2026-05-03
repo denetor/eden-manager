@@ -470,7 +470,8 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 - [x] Creatures must not move into veiled or non active cells
 - [x] Despawned creatures do not hide
 - [x] Change stone giant behaviour: no cell transformation, only increase mana generation
-- [ ] SeaSerpent must not move to non-water cells
+- [x] SeaSerpent must not move to non-water cells
+- [ ] StoneGiant must move only on Mountain cells
 - [ ] Luminous swarm moves only to Forest or Sacred Grove cells
 - [ ] Allow spawning humans on hills, forest, mountain
 - [ ] Change Mill spawning logic to: if attached to Farm and Water and without other mills in a 3 tiles radius

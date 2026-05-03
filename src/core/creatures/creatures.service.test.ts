@@ -355,7 +355,7 @@ describe('CreaturesService', () => {
         });
 
         it('creature moves to a valid orthogonal neighbor when move probability reached (>= 0.5)', () => {
-            makeActive(5, 4, 'Meadow'); // north neighbor must be Active to be valid
+            makeActive(5, 4, 'Water'); // north neighbor must be Active Water for SeaSerpent
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
             }, grid)!;
@@ -375,8 +375,8 @@ describe('CreaturesService', () => {
 
         it('creature does not move outside map bounds', () => {
             // (0,0): north and west are out of bounds; in-bounds = south(0,1) and east(1,0)
-            makeActive(0, 1, 'Meadow');
-            makeActive(1, 0, 'Meadow');
+            makeActive(0, 1, 'Water');
+            makeActive(1, 0, 'Water');
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 }]
             }, grid)!;
@@ -395,9 +395,9 @@ describe('CreaturesService', () => {
         });
 
         it('creature stays when all valid Active neighbors are occupied', () => {
-            // (0,0) in-bounds Active neighbors: south(0,1) and east(1,0) — both occupied
-            makeActive(0, 1, 'Meadow');
-            makeActive(1, 0, 'Meadow');
+            // (0,0) in-bounds Active Water neighbors: south(0,1) and east(1,0) — both occupied
+            makeActive(0, 1, 'Water');
+            makeActive(1, 0, 'Water');
             const testService = CreaturesService.fromJSON({
                 creatures: [
                     { id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 },
@@ -422,7 +422,7 @@ describe('CreaturesService', () => {
         });
 
         it('emits creatureMoved event with correct payload', () => {
-            makeActive(5, 4, 'Meadow'); // north neighbor must be Active
+            makeActive(5, 4, 'Water'); // north neighbor must be Active Water for SeaSerpent
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
             }, grid)!;
@@ -486,9 +486,9 @@ describe('CreaturesService', () => {
         });
 
         it('creature moves only to Active neighbors, skipping Veiled and Dormant ones', () => {
-            // north(5,4): Veiled (default), south(5,6): Dormant, west(4,5): Active, east(6,5): Veiled
-            makeDormant(5, 6, 'Meadow');
-            makeActive(4, 5, 'Meadow');
+            // north(5,4): Veiled (default), south(5,6): Dormant, west(4,5): Active Water, east(6,5): Veiled
+            makeDormant(5, 6, 'Water');
+            makeActive(4, 5, 'Water');
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
             }, grid)!;
@@ -503,6 +503,26 @@ describe('CreaturesService', () => {
 
             const creature = testService.getCreatures()[0];
             expect(creature.x).toBe(4);
+            expect(creature.y).toBe(5);
+        });
+
+        it('SeaSerpent does not move to an Active non-Water neighbor', () => {
+            makeActive(5, 4, 'Meadow');
+            makeActive(5, 6, 'Forest');
+            makeActive(4, 5, 'Mountain');
+            makeActive(6, 5, 'Ruins');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt: no valid Water neighbors → stays
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
             expect(creature.y).toBe(5);
         });
 
