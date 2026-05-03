@@ -427,14 +427,14 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.22 — Creature Spawning
 **Goal:** Legendary creatures spawn in matching habitats.
 
-- [ ] `CreaturesService` class (already exists): track creatures, spawn conditions
-- [ ] Define 2–3 creatures with spawn conditions:
+- [x] `CreaturesService` class (already exists): track creatures, spawn conditions
+- [x] Define 2–3 creatures with spawn conditions:
   - Stone Colossus: spawn in cells with 3+ adjacent Mountains
   - Luminous Swarm: spawn in Sacred Groves
   - Water Serpent: spawn in cells with Water
-- [ ] On each pulse: check spawn conditions; create creatures
-- [ ] Visual: creature icons in isometric view
-- [ ] **Verification:** Create matching habitat; observe creature spawn on pulse; log to console
+- [x] On each pulse: check spawn conditions; create creatures
+- [x] Visual: creature icons in isometric view
+- [x] **Verification:** Create matching habitat; observe creature spawn on pulse; log to console
 
 **Files to update:**
 - `src/core/creatures/creatures.service.ts` — Already exists; verify spawn logic

@@ -10,13 +10,15 @@ import {SynergyEngine} from '../core/synergy/synergy.service';
 import {BuildingSynergyService} from '../core/synergy/building-synergy.service';
 import {ManaService} from '../core/mana/mana.service';
 import {HumansService, HumanStatusChangedPayload} from '../core/humans/humans.service';
-import {CreaturesService, CreatureSpawnedPayload} from '../core/creatures/creatures.service';
+import {CreaturesService, CreatureSpawnedPayload, CreatureMovedPayload, CreatureDespawnedPayload} from '../core/creatures/creatures.service';
+import {CreatureType} from '../core/creatures/creatures.model';
+import {CreatureActor} from '../ui/creatures/creature.actor';
 import {BuildingType} from '../core/synergy/building-synergy.model';
 import {PersistenceService} from '../persistence/persistence.service';
 import {ManaDisplay} from '../ui/hud/mana-display';
 import {CellInfo} from '../ui/hud/cell-info';
 import {FeedbackMessage} from "../ui/feedback-message";
-import {TILE_WIDTH, TILE_HEIGHT, HUMAN_SPAWN_COST} from '../shared/constants';
+import {TILE_WIDTH, TILE_HEIGHT, HUMAN_SPAWN_COST, PULSE_INTERVAL} from '../shared/constants';
 // import {IsometricCoordinateSystem} from '../graphics/isometric-coordinate-system';
 import {CameraController} from '../input/camera-controller';
 import {Sprites} from "../resources";
@@ -40,7 +42,7 @@ export class GameScene extends Scene {
     private selectedX: number = -1;
     private selectedY: number = -1;
     private lastPulseTime: number = 0;
-    private pulseInterval: number = 1000; // ms between pulses
+    private creatureActors: Map<string, CreatureActor> = new Map();
 
     constructor() {
         super();
@@ -90,6 +92,11 @@ export class GameScene extends Scene {
         this.subscribeToHumansEvents(this.gameEngine.getHumans());
         this.subscribeToCreaturesEvents(this.gameEngine.getCreatures());
 
+        // 5b. Create actors for creatures already loaded from persistence
+        for (const creature of creatures.getCreatures()) {
+            this.spawnCreatureActor(creature.id, creature.type, creature.x, creature.y);
+        }
+
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
         this.cameraController.setupInputHandling(engine);
@@ -102,7 +109,7 @@ export class GameScene extends Scene {
 
         // Handle continuous pulse triggering
         this.lastPulseTime += elapsedMs;
-        if (this.lastPulseTime >= this.pulseInterval) {
+        if (this.lastPulseTime >= PULSE_INTERVAL) {
             this.triggerDivinePulse();
             this.lastPulseTime = 0;
         }
@@ -178,21 +185,32 @@ export class GameScene extends Scene {
         });
     }
 
-    /**
-     * Subscribe to CreaturesService events to refresh tiles when a creature spawns.
-     *
-     * @param creatures - The CreaturesService instance emitting creatureSpawned events
-     */
     private subscribeToCreaturesEvents(creatures: CreaturesService): void {
         creatures.on('creatureSpawned', (payload: CreatureSpawnedPayload) => {
-            const tile = this.isometricMap.getTile(payload.x, payload.y);
-            if (tile) {
-                const cell = this.gameEngine.getGrid().getCell(payload.x, payload.y);
-                if (cell) {
-                    this.setComposedGraphic(tile, cell, payload.x === this.selectedX && payload.y === this.selectedY);
-                }
+            this.spawnCreatureActor(payload.id, payload.type, payload.x, payload.y);
+        });
+        creatures.on('creatureMoved', (payload: CreatureMovedPayload) => {
+            const actor = this.creatureActors.get(payload.id);
+            const tile = this.isometricMap.getTile(payload.toX, payload.toY);
+            if (actor && tile) {
+                actor.tweenTo(tile.center);
             }
         });
+        creatures.on('creatureDespawned', (payload: CreatureDespawnedPayload) => {
+            const actor = this.creatureActors.get(payload.id);
+            if (actor) {
+                actor.kill();
+                this.creatureActors.delete(payload.id);
+            }
+        });
+    }
+
+    private spawnCreatureActor(id: string, type: CreatureType, x: number, y: number): void {
+        const tile = this.isometricMap.getTile(x, y);
+        if (!tile) return;
+        const actor = new CreatureActor(id, type, tile.center);
+        this.creatureActors.set(id, actor);
+        this.add(actor);
     }
 
     /**
@@ -268,21 +286,6 @@ export class GameScene extends Scene {
         const humanAtCell = humans.find(h => h.x === cell.x && h.y === cell.y);
         if (humanAtCell) {
             tile.addGraphic(humanAtCell.status === 'Dormant' ? Sprites.humanDormant : Sprites.human);
-        }
-
-        const creatures = this.gameEngine.getCreatures().getCreatures();
-        const creatureAtCell = creatures.find(c => c.x === cell.x && c.y === cell.y);
-        if (creatureAtCell) {
-            tile.addGraphic(this.getCreatureSprite(creatureAtCell.type));
-        }
-    }
-
-    private getCreatureSprite(type: string) {
-        switch (type) {
-            case 'StoneGiant':    return Sprites.creatureStoneGiant;
-            case 'SeaSerpent':    return Sprites.creatureSeaSerpent;
-            case 'LuminousSwarm': return Sprites.creatureLuminousSwarm;
-            default:              return Sprites.creatureStoneGiant;
         }
     }
 

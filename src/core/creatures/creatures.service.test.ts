@@ -1,5 +1,5 @@
 import { Grid } from '../grid/grid.service';
-import { CreaturesService, CreatureSpawnedPayload } from './creatures.service';
+import { CreaturesService, CreatureSpawnedPayload, CreatureMovedPayload, CreatureDespawnedPayload } from './creatures.service';
 
 describe('CreaturesService', () => {
     let grid: Grid;
@@ -98,6 +98,12 @@ describe('CreaturesService', () => {
 
             service.update(); // spawns once
             const countAfterFirst = service.getCreatures().filter(c => c.type === 'StoneGiant').length;
+
+            jest.restoreAllMocks();
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
             service.update(); // must not spawn again
             const countAfterSecond = service.getCreatures().filter(c => c.type === 'StoneGiant').length;
 
@@ -152,6 +158,12 @@ describe('CreaturesService', () => {
 
             service.update();
             const countAfterFirst = service.getCreatures().filter(c => c.type === 'SeaSerpent').length;
+
+            jest.restoreAllMocks();
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
             service.update();
             const countAfterSecond = service.getCreatures().filter(c => c.type === 'SeaSerpent').length;
 
@@ -205,6 +217,12 @@ describe('CreaturesService', () => {
 
             service.update();
             const countAfterFirst = service.getCreatures().filter(c => c.type === 'LuminousSwarm').length;
+
+            jest.restoreAllMocks();
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
             service.update();
             const countAfterSecond = service.getCreatures().filter(c => c.type === 'LuminousSwarm').length;
 
@@ -269,6 +287,11 @@ describe('CreaturesService', () => {
 
             service.update(); // first spawn — event emitted once
 
+            jest.restoreAllMocks();
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
             const events: CreatureSpawnedPayload[] = [];
             service.on('creatureSpawned', (p: CreatureSpawnedPayload) => events.push(p));
 
@@ -309,6 +332,341 @@ describe('CreaturesService', () => {
 
             expect(restored).not.toBeNull();
             expect(restored.getCreatures()).toHaveLength(0);
+        });
+    });
+
+    // ── Creature movement ──────────────────────────────────────────────────────
+
+    describe('creature movement', () => {
+        it('creature stays when move probability not reached (< 0.5)', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move decision: < 0.5 → stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(5);
+        });
+
+        it('creature moves to a valid orthogonal neighbor when move probability reached (>= 0.5)', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            // Directions order: north(5,4), south(5,6), west(4,5), east(6,5)
+            // mockReturnValueOnce(0) for neighbor index → Math.floor(0 * 4) = 0 → (5,4)
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move decision: >= 0.5 → attempt
+                .mockReturnValueOnce(0)     // neighbor index 0 → (5, 4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(4);
+        });
+
+        it('creature does not move outside map bounds', () => {
+            // (0,0): north and west are out of bounds; valid = south(0,1) and east(1,0)
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 }]
+            }, grid)!;
+
+            // index 0 of valid neighbors [south(0,1), east(1,0)] → (0,1)
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move decision
+                .mockReturnValueOnce(0)     // picks (0,1)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(0);
+            expect(creature.y).toBe(1);
+        });
+
+        it('creature stays when all valid neighbors are occupied', () => {
+            // (0,0) valid in-bounds neighbors: south(0,1) and east(1,0) — both occupied
+            const testService = CreaturesService.fromJSON({
+                creatures: [
+                    { id: 'sea_1', type: 'SeaSerpent', x: 0, y: 0 },
+                    { id: 'stone_1', type: 'StoneGiant', x: 0, y: 1 },
+                    { id: 'ls_1', type: 'LuminousSwarm', x: 1, y: 0 },
+                ]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // sea: attempt (no valid → stays, no neighbor call)
+                .mockReturnValueOnce(0.6)   // stone: attempt
+                .mockReturnValueOnce(0)     // stone: pick neighbor
+                .mockReturnValueOnce(0.6)   // ls: attempt
+                .mockReturnValueOnce(0)     // ls: pick neighbor
+                .mockReturnValueOnce(0.99)  // sea: no despawn
+                .mockReturnValueOnce(0.99)  // stone: no despawn
+                .mockReturnValueOnce(0.99); // ls: no despawn
+
+            testService.update();
+
+            const sea = testService.getCreatures().find(c => c.id === 'sea_1')!;
+            expect(sea.x).toBe(0);
+            expect(sea.y).toBe(0);
+        });
+
+        it('emits creatureMoved event with correct payload', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move decision
+                .mockReturnValueOnce(0)     // picks (5, 4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            const events: CreatureMovedPayload[] = [];
+            testService.on('creatureMoved', (p: CreatureMovedPayload) => events.push(p));
+
+            testService.update();
+
+            expect(events).toHaveLength(1);
+            expect(events[0]).toMatchObject({
+                id: 'sea_1',
+                type: 'SeaSerpent',
+                fromX: 5,
+                fromY: 5,
+                toX: 5,
+                toY: 4,
+            });
+        });
+
+        it('does not emit creatureMoved when creature stays', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // stay
+                .mockReturnValueOnce(0.99); // no despawn
+
+            const events: CreatureMovedPayload[] = [];
+            testService.on('creatureMoved', (p: CreatureMovedPayload) => events.push(p));
+
+            testService.update();
+
+            expect(events).toHaveLength(0);
+        });
+    });
+
+    // ── Creature passive effects ───────────────────────────────────────────────
+
+    describe('creature passive effects', () => {
+        it('StoneGiant transforms Active Mountain to Foothill', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Mountain' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Foothill');
+        });
+
+        it('StoneGiant does not transform a Dormant Mountain cell', () => {
+            grid.setCell(5, 5, { state: 'Dormant', terrainType: 'Mountain' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            testService.update();
+
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Mountain');
+        });
+
+        it('StoneGiant does not transform a non-Mountain Active cell', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Forest' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            testService.update();
+
+            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
+        });
+
+        it('SeaSerpent transforms orthogonal Active Meadow neighbors to Fertile Plain', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Water' });
+            grid.setCell(5, 4, { state: 'Active', terrainType: 'Meadow' });
+            grid.setCell(5, 6, { state: 'Active', terrainType: 'Meadow' });
+            grid.setCell(4, 5, { state: 'Active', terrainType: 'Forest' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            testService.update();
+
+            expect(grid.getCell(5, 4)?.terrainType).toBe('Fertile Plain');
+            expect(grid.getCell(5, 6)?.terrainType).toBe('Fertile Plain');
+            expect(grid.getCell(4, 5)?.terrainType).toBe('Forest');
+        });
+
+        it('SeaSerpent does not transform Dormant Meadow neighbors', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Water' });
+            grid.setCell(5, 4, { state: 'Dormant', terrainType: 'Meadow' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            testService.update();
+
+            expect(grid.getCell(5, 4)?.terrainType).toBe('Meadow');
+        });
+
+        it('LuminousSwarm returns manaBonus 1 when on Active cell', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Sacred Grove' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            const bonus = testService.update();
+
+            expect(bonus).toBe(1);
+        });
+
+        it('LuminousSwarm returns manaBonus 0 when on non-Active cell', () => {
+            grid.setCell(5, 5, { state: 'Dormant', terrainType: 'Sacred Grove' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)
+                .mockReturnValueOnce(0.99);
+
+            const bonus = testService.update();
+
+            expect(bonus).toBe(0);
+        });
+
+        it('multiple creatures contribute cumulative mana bonus', () => {
+            grid.setCell(5, 5, { state: 'Active', terrainType: 'Sacred Grove' });
+            grid.setCell(8, 8, { state: 'Active', terrainType: 'Sacred Grove' });
+            const testService = CreaturesService.fromJSON({
+                creatures: [
+                    { id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 },
+                    { id: 'ls_2', type: 'LuminousSwarm', x: 8, y: 8 },
+                ]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // ls_1: move stay
+                .mockReturnValueOnce(0.4)   // ls_2: move stay
+                .mockReturnValueOnce(0.99)  // ls_1: no despawn
+                .mockReturnValueOnce(0.99); // ls_2: no despawn
+
+            const bonus = testService.update();
+
+            expect(bonus).toBe(2);
+        });
+    });
+
+    // ── Creature despawn ───────────────────────────────────────────────────────
+
+    describe('creature despawn', () => {
+        it('removes creature when despawn probability is reached', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.01); // despawn: < 0.05 → remove
+
+            testService.update();
+
+            expect(testService.getCreatures()).toHaveLength(0);
+        });
+
+        it('keeps creature when despawn probability is not reached', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.99); // despawn: >= 0.05 → keep
+
+            testService.update();
+
+            expect(testService.getCreatures()).toHaveLength(1);
+        });
+
+        it('emits creatureDespawned event with correct payload', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.01); // despawn
+
+            const events: CreatureDespawnedPayload[] = [];
+            testService.on('creatureDespawned', (p: CreatureDespawnedPayload) => events.push(p));
+
+            testService.update();
+
+            expect(events).toHaveLength(1);
+            expect(events[0]).toMatchObject({ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 });
+        });
+
+        it('despawn is independent per creature', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [
+                    { id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 },
+                    { id: 'stone_1', type: 'StoneGiant', x: 8, y: 8 },
+                ]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // sea: move stay
+                .mockReturnValueOnce(0.4)   // stone: move stay
+                .mockReturnValueOnce(0.01)  // sea: despawn
+                .mockReturnValueOnce(0.99); // stone: no despawn
+
+            testService.update();
+
+            const remaining = testService.getCreatures();
+            expect(remaining).toHaveLength(1);
+            expect(remaining[0].type).toBe('StoneGiant');
         });
     });
 });

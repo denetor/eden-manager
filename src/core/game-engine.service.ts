@@ -65,7 +65,10 @@ export class GameEngine {
         this.synergy.apply();
         this.buildingSynergy.apply();
         this.humans.update();
-        this.creatures.update();
+        const creatureManaBonus = this.creatures.update();
+        if (creatureManaBonus > 0) {
+            this.mana.add(creatureManaBonus);
+        }
         this.collectTerrainMana();
         this.collectBuildingsMana();
         this.mana.regenerate();

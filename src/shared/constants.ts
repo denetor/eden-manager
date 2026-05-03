@@ -26,3 +26,9 @@ export const Z_UI = 999;
 
 /** Mana costs for player actions */
 export const HUMAN_SPAWN_COST = 10;
+
+/** Duration of one Divine Pulse in milliseconds */
+export const PULSE_INTERVAL = 1000;
+
+/** Probability that a creature despawns on each Divine Pulse */
+export const CREATURE_DESPAWN_PROBABILITY = 0.05;
