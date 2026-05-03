@@ -709,6 +709,25 @@ describe('CreaturesService', () => {
             expect(events[0]).toMatchObject({ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 });
         });
 
+        it('creature is removed from list before creatureDespawned event fires', () => {
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.4)   // move: stay
+                .mockReturnValueOnce(0.01); // despawn
+
+            let countDuringEvent = -1;
+            testService.on('creatureDespawned', () => {
+                countDuringEvent = testService.getCreatures().length;
+            });
+
+            testService.update();
+
+            expect(countDuringEvent).toBe(0);
+        });
+
         it('despawn is independent per creature', () => {
             const testService = CreaturesService.fromJSON({
                 creatures: [

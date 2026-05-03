@@ -92,15 +92,19 @@ export class CreaturesService extends EventEmitter {
 
     private despawnCreatures(): void {
         const surviving: Creature[] = [];
+        const despawned: Creature[] = [];
         for (const creature of this.creatures) {
             if (Math.random() < CREATURE_DESPAWN_PROBABILITY) {
-                console.log(`Creature despawned: ${creature.type} (${creature.id}) at (${creature.x}, ${creature.y})`);
-                this.emit('creatureDespawned', { id: creature.id, type: creature.type, x: creature.x, y: creature.y } as CreatureDespawnedPayload);
+                despawned.push(creature);
             } else {
                 surviving.push(creature);
             }
         }
         this.creatures = surviving;
+        for (const creature of despawned) {
+            console.log(`Creature despawned: ${creature.type} (${creature.id}) at (${creature.x}, ${creature.y})`);
+            this.emit('creatureDespawned', { id: creature.id, type: creature.type, x: creature.x, y: creature.y } as CreatureDespawnedPayload);
+        }
     }
 
     private applyEffects(creature: Creature): number {
