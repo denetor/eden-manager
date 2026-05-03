@@ -464,6 +464,15 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 
 **Estimated complexity:** Medium–High
 
+### v0.23.1 — Bugfix
+**Goal:** fix bugs found
+
+- [ ] Creatures must not move into veiled or not active cells
+- [ ] Despawned creatures do not hide
+- [ ] Change stone giant behaviour: no cell transformation, only increase mana generation
+- [ ] SeaSerpent must not move to non-water cells
+- [ ] Luminous swarm moves only to Forest or Sacred Grove cells
+
 ---
 
 ## Phase 9: Divine Powers (v0.24 – v0.29)
