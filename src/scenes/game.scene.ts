@@ -93,9 +93,9 @@ export class GameScene extends Scene {
         this.subscribeToCreaturesEvents(this.gameEngine.getCreatures());
 
         // 5b. Create actors for creatures already loaded from persistence
-        for (const creature of creatures.getCreatures()) {
-            this.spawnCreatureActor(creature.id, creature.type, creature.x, creature.y);
-        }
+        // for (const creature of creatures.getCreatures()) {
+        //     this.spawnCreatureActor(creature.id, creature.type, creature.x, creature.y);
+        // }
 
         // 6. Subscribe to input events
         this.setupInputHandling(engine, grid);
@@ -185,26 +185,40 @@ export class GameScene extends Scene {
         });
     }
 
+    /**
+     * Subscribes to creature-related events and handles the graphical updates
+     * based on the events triggered from the provided CreaturesService instance.
+     *
+     * @param {CreaturesService} creatures The service emitting creature-related events.
+     * @return {void} This method does not return a value.
+     */
     private subscribeToCreaturesEvents(creatures: CreaturesService): void {
         creatures.on('creatureSpawned', (payload: CreatureSpawnedPayload) => {
-            this.spawnCreatureActor(payload.id, payload.type, payload.x, payload.y);
+            // add creature sprite to cell graphics
+            this.rebuildGraphics(payload.x, payload.y);
         });
         creatures.on('creatureMoved', (payload: CreatureMovedPayload) => {
-            const actor = this.creatureActors.get(payload.id);
-            const tile = this.isometricMap.getTile(payload.toX, payload.toY);
-            if (actor && tile) {
-                actor.tweenTo(tile.center);
-            }
+            // remove creature sprite from source cell graphics
+            this.rebuildGraphics(payload.fromX, payload.fromY);
+            // add creature sprite to destination cell graphics
+            this.rebuildGraphics(payload.toX, payload.toY);
         });
         creatures.on('creatureDespawned', (payload: CreatureDespawnedPayload) => {
-            const actor = this.creatureActors.get(payload.id);
-            if (actor) {
-                actor.kill();
-                this.creatureActors.delete(payload.id);
-            }
+            // remove creature sprite from cell graphics
+            this.rebuildGraphics(payload.x, payload.y);
         });
     }
 
+
+    /**
+     * Spawns a new creature actor on the isometric map at the specified coordinates.
+     *
+     * @param {string} id - The unique identifier for the creature actor.
+     * @param {CreatureType} type - The type of the creature to be spawned.
+     * @param {number} x - The x-coordinate of the tile where the creature will be placed.
+     * @param {number} y - The y-coordinate of the tile where the creature will be placed.
+     * @return {void} Does not return a value.
+     */
     private spawnCreatureActor(id: string, type: CreatureType, x: number, y: number): void {
         const tile = this.isometricMap.getTile(x, y);
         if (!tile) return;
@@ -212,6 +226,7 @@ export class GameScene extends Scene {
         this.creatureActors.set(id, actor);
         this.add(actor);
     }
+
 
     /**
      * Subscribe to Grid events to update tile graphics when cell state changes.
@@ -237,6 +252,24 @@ export class GameScene extends Scene {
             }
             // console.log(`Batch updated ${changes.length} tiles`);
         });
+    }
+
+
+    /**
+     * Rebuilds the graphical representation of a specific tile on the isometric map.
+     *
+     * @param {number} x - The x-coordinate of the tile to rebuild.
+     * @param {number} y - The y-coordinate of the tile to rebuild.
+     * @return {void} This method does not return a value.
+     */
+    private rebuildGraphics(x: number, y: number): void {
+        const tile = this.isometricMap.getTile(x, y);
+        if (tile) {
+            const cell = this.gameEngine.getGrid().getCell(x, y);
+            if (cell) {
+                this.setComposedGraphic(tile, cell, x === this.selectedX && y === this.selectedY);
+            }
+        }
     }
 
 
@@ -282,10 +315,28 @@ export class GameScene extends Scene {
      * @param cell - The cell whose coordinates are used to locate entities
      */
     private addEntityOverlays(tile: IsometricTile, cell: Cell): void {
+        // add human
         const humans = this.gameEngine.getHumans().getHumans();
         const humanAtCell = humans.find(h => h.x === cell.x && h.y === cell.y);
         if (humanAtCell) {
             tile.addGraphic(humanAtCell.status === 'Dormant' ? Sprites.humanDormant : Sprites.human);
+        }
+        // add creature
+        const creatures = this.gameEngine.getCreatures().getCreatures();
+        const creatureAtCell = creatures.find(c => c.x === cell.x && c.y === cell.y);
+        if (creatureAtCell) {
+            switch (creatureAtCell.type) {
+                case 'StoneGiant':
+                    tile.addGraphic(Sprites.creatureStoneGiant);
+                    break;
+                case 'SeaSerpent':
+                    tile.addGraphic(Sprites.creatureSeaSerpent);
+                    break;
+                case 'LuminousSwarm':
+                    tile.addGraphic(Sprites.creatureLuminousSwarm);
+                    break;
+            }
+
         }
     }
 
