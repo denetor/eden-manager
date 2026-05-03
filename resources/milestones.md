@@ -448,14 +448,14 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 ### v0.23 — Creature Movement & Effects
 **Goal:** Creatures move each pulse; trigger passive effects.
 
-- [ ] On each pulse: move creatures according to simple rules (random walk, drift toward high-harmony)
-- [ ] Define creature effects:
+- [x] On each pulse: move creatures according to simple rules (random walk, drift toward high-harmony)
+- [x] Define creature effects:
   - Stone Colossus: transforms Mountain to Foothill
   - Water Serpent: hydrates adjacent cells
   - Luminous Swarm: increases mana generation on resting cell
-- [ ] Apply effects on destination cell
-- [ ] Log creature movement to console
-- [ ] **Verification:** Watch creatures move in isometric; see effects trigger; console logs
+- [x] Apply effects on destination cell
+- [x] Log creature movement to console
+- [x] **Verification:** Watch creatures move in isometric; see effects trigger; console logs
 
 **Files to update:**
 - `src/core/creatures/creatures.service.ts` — Add movement and effects
