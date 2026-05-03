@@ -527,7 +527,7 @@ describe('CreaturesService', () => {
     // ── Creature passive effects ───────────────────────────────────────────────
 
     describe('creature passive effects', () => {
-        it('StoneGiant transforms Active Mountain to Foothill', () => {
+        it('StoneGiant generates +1 mana when on Active Mountain', () => {
             grid.setCell(5, 5, { state: 'Active', terrainType: 'Mountain' });
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
@@ -537,12 +537,12 @@ describe('CreaturesService', () => {
                 .mockReturnValueOnce(0.4)   // move: stay
                 .mockReturnValueOnce(0.99); // despawn: no
 
-            testService.update();
+            const mana = testService.update();
 
-            expect(grid.getCell(5, 5)?.terrainType).toBe('Foothill');
+            expect(mana).toBe(1);
         });
 
-        it('StoneGiant does not transform a Dormant Mountain cell', () => {
+        it('StoneGiant generates no mana on Dormant Mountain', () => {
             grid.setCell(5, 5, { state: 'Dormant', terrainType: 'Mountain' });
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
@@ -552,12 +552,12 @@ describe('CreaturesService', () => {
                 .mockReturnValueOnce(0.4)
                 .mockReturnValueOnce(0.99);
 
-            testService.update();
+            const mana = testService.update();
 
-            expect(grid.getCell(5, 5)?.terrainType).toBe('Mountain');
+            expect(mana).toBe(0);
         });
 
-        it('StoneGiant does not transform a non-Mountain Active cell', () => {
+        it('StoneGiant generates no mana on non-Mountain Active cell', () => {
             grid.setCell(5, 5, { state: 'Active', terrainType: 'Forest' });
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
@@ -567,9 +567,9 @@ describe('CreaturesService', () => {
                 .mockReturnValueOnce(0.4)
                 .mockReturnValueOnce(0.99);
 
-            testService.update();
+            const mana = testService.update();
 
-            expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
+            expect(mana).toBe(0);
         });
 
         it('SeaSerpent transforms orthogonal Active Meadow neighbors to Fertile Plain', () => {

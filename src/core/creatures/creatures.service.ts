@@ -113,8 +113,8 @@ export class CreaturesService extends EventEmitter {
 
         if (creature.type === 'StoneGiant') {
             if (cell.state === 'Active' && cell.terrainType === 'Mountain') {
-                this.grid.reshape(creature.x, creature.y, 'Foothill');
-                console.log(`StoneGiant transformed Mountain to Foothill at (${creature.x}, ${creature.y})`);
+                console.log(`StoneGiant generated +1 mana at (${creature.x}, ${creature.y})`);
+                return 1;
             }
             return 0;
         }
