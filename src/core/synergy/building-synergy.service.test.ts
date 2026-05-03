@@ -96,11 +96,11 @@ describe('BuildingSynergyService', () => {
     // ─── Mill ─────────────────────────────────────────────────────────────────
 
     describe('Mill rule', () => {
-        it('should place Mill on Meadow adjacent (orthogonal) to Farm with water nearby', () => {
+        it('should place Mill on Meadow with orthogonal Farm and orthogonal Water', () => {
             makeActive(8, 8, 'Meadow');
-            makeActive(8, 7, 'Fertile Plain');  // Farm cell to the north
+            makeActive(8, 7, 'Fertile Plain');  // Farm to the north
             grid.setBuilding(8, 7, 'Farm');
-            makeActive(8, 5, 'Water');
+            makeActive(9, 8, 'Water');          // Water to the east (orthogonal)
             placeActiveHuman(8, 8);
 
             service.apply();
@@ -108,24 +108,39 @@ describe('BuildingSynergyService', () => {
             expect(grid.getCell(8, 8)?.building).toBe('Mill');
         });
 
-        it('should place Mill on Fertile Plain adjacent (orthogonal) to Farm', () => {
+        it('should place Mill on Fertile Plain when Mill conditions met and random < 0.25', () => {
+            jest.spyOn(Math, 'random').mockReturnValue(0.1);
             makeActive(8, 8, 'Fertile Plain');
             makeActive(7, 8, 'Fertile Plain');
             grid.setBuilding(7, 8, 'Farm');
-            makeActive(8, 5, 'Water');
+            makeActive(8, 9, 'Water');
             placeActiveHuman(8, 8);
 
             service.apply();
 
-            // Fertile Plain + water → Farm takes priority over Mill
+            expect(grid.getCell(8, 8)?.building).toBe('Mill');
+            jest.restoreAllMocks();
+        });
+
+        it('should place Farm on Fertile Plain when Mill conditions met but random >= 0.25', () => {
+            jest.spyOn(Math, 'random').mockReturnValue(0.5);
+            makeActive(8, 8, 'Fertile Plain');
+            makeActive(7, 8, 'Fertile Plain');
+            grid.setBuilding(7, 8, 'Farm');
+            makeActive(8, 9, 'Water');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
             expect(grid.getCell(8, 8)?.building).toBe('Farm');
+            jest.restoreAllMocks();
         });
 
         it('should not place Mill when Farm is only diagonally adjacent', () => {
             makeActive(8, 8, 'Meadow');
             makeActive(7, 7, 'Fertile Plain');  // diagonal, not orthogonal
             grid.setBuilding(7, 7, 'Farm');
-            makeActive(8, 5, 'Water');
+            makeActive(9, 8, 'Water');
             placeActiveHuman(8, 8);
 
             service.apply();
@@ -135,7 +150,31 @@ describe('BuildingSynergyService', () => {
 
         it('should not place Mill when no Farm is orthogonally adjacent', () => {
             makeActive(8, 8, 'Meadow');
-            makeActive(8, 5, 'Water');
+            makeActive(9, 8, 'Water');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
+
+        it('should not place Mill when water is not orthogonally adjacent', () => {
+            makeActive(8, 8, 'Meadow');
+            makeActive(8, 7, 'Fertile Plain');
+            grid.setBuilding(8, 7, 'Farm');
+            makeActive(8, 5, 'Water');          // Water is 3 tiles away, not orthogonal
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
+
+        it('should not place Mill when water is only diagonally adjacent', () => {
+            makeActive(8, 8, 'Meadow');
+            makeActive(8, 7, 'Fertile Plain');
+            grid.setBuilding(8, 7, 'Farm');
+            makeActive(9, 7, 'Water');          // diagonal
             placeActiveHuman(8, 8);
 
             service.apply();
@@ -147,6 +186,48 @@ describe('BuildingSynergyService', () => {
             makeActive(8, 8, 'Meadow');
             makeActive(8, 7, 'Fertile Plain');
             grid.setBuilding(8, 7, 'Farm');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
+
+        it('should not place Mill when another Mill is within radius 3', () => {
+            makeActive(8, 8, 'Meadow');
+            makeActive(8, 7, 'Fertile Plain');
+            grid.setBuilding(8, 7, 'Farm');
+            makeActive(9, 8, 'Water');
+            makeActive(8, 6, 'Meadow');
+            grid.setBuilding(8, 6, 'Mill');     // Mill 2 tiles away
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
+
+        it('should place Mill when nearest Mill is at distance 4', () => {
+            makeActive(8, 8, 'Meadow');
+            makeActive(8, 7, 'Fertile Plain');
+            grid.setBuilding(8, 7, 'Farm');
+            makeActive(9, 8, 'Water');
+            makeActive(8, 4, 'Meadow');
+            grid.setBuilding(8, 4, 'Mill');     // Mill 4 tiles away, outside radius
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBe('Mill');
+        });
+
+        it('should not place Mill when nearest Mill is at exactly radius 3 (boundary is inclusive, blocked)', () => {
+            makeActive(8, 8, 'Meadow');
+            makeActive(8, 7, 'Fertile Plain');
+            grid.setBuilding(8, 7, 'Farm');
+            makeActive(9, 8, 'Water');
+            makeActive(8, 5, 'Meadow');
+            grid.setBuilding(8, 5, 'Mill');     // Mill exactly 3 tiles away — blocked
             placeActiveHuman(8, 8);
 
             service.apply();

@@ -38,16 +38,14 @@ export class BuildingSynergyService {
     }
 
     private computeBuilding(cell: Cell, x: number, y: number): BuildingType | null {
-        const hasWater = this.hasWaterInRadius(x, y);
-
-        // Farm: Fertile Plain + water nearby
-        if (cell.terrainType === 'Fertile Plain' && hasWater) {
-            return 'Farm';
+        // Fertile Plain: check Mill first (25% chance if conditions met), then Farm
+        if (cell.terrainType === 'Fertile Plain') {
+            return this.computeFertilePlainBuilding(x, y);
         }
 
-        // Mill: Meadow or Fertile Plain + orthogonal Farm + water nearby
-        if ((cell.terrainType === 'Meadow' || cell.terrainType === 'Fertile Plain') && hasWater) {
-            if (this.hasOrthogonalFarm(x, y)) {
+        // Mill: Meadow + orthogonal Farm + orthogonal Water + no Mill within 3 tiles
+        if (cell.terrainType === 'Meadow') {
+            if (this.hasOrthogonalFarm(x, y) && this.hasOrthogonalWater(x, y) && !this.hasMillInRadius(x, y, 3)) {
                 return 'Mill';
             }
         }
@@ -62,6 +60,18 @@ export class BuildingSynergyService {
             return 'Tower';
         }
 
+        return null;
+    }
+
+    private computeFertilePlainBuilding(x: number, y: number): BuildingType | null {
+        if (this.hasOrthogonalFarm(x, y) && this.hasOrthogonalWater(x, y) && !this.hasMillInRadius(x, y, 3)) {
+            if (Math.random() < 0.25) {
+                return 'Mill';
+            }
+        }
+        if (this.hasWaterInRadius(x, y)) {
+            return 'Farm';
+        }
         return null;
     }
 
@@ -82,5 +92,18 @@ export class BuildingSynergyService {
             const neighbor = this.grid.getCell(x + dx, y + dy);
             return neighbor?.building === 'Farm';
         });
+    }
+
+    private hasOrthogonalWater(x: number, y: number): boolean {
+        return ORTHOGONAL.some(({ dx, dy }) => {
+            const neighbor = this.grid.getCell(x + dx, y + dy);
+            return neighbor?.terrainType === 'Water' && neighbor.state === 'Active';
+        });
+    }
+
+    private hasMillInRadius(x: number, y: number, radius: number): boolean {
+        return this.grid.getCellsInRadius(x, y, radius).some(
+            c => c.building === 'Mill'
+        );
     }
 }
