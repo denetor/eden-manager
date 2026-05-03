@@ -78,6 +78,7 @@ export class CreaturesService extends EventEmitter {
             .filter(pos => this.grid.getCell(pos.x, pos.y)?.state === 'Active')
             .filter(pos => creature.type !== 'SeaSerpent' || this.grid.getCell(pos.x, pos.y)?.terrainType === 'Water')
             .filter(pos => creature.type !== 'StoneGiant' || this.grid.getCell(pos.x, pos.y)?.terrainType === 'Mountain')
+            .filter(pos => creature.type !== 'LuminousSwarm' || (['Forest', 'Sacred Grove', 'Foothill'] as const).includes(this.grid.getCell(pos.x, pos.y)?.terrainType as 'Forest' | 'Sacred Grove' | 'Foothill'))
             .filter(pos => !this.creatures.some(c => c.id !== creature.id && c.x === pos.x && c.y === pos.y));
 
         if (validNeighbors.length === 0) return;

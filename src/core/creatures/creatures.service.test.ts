@@ -564,6 +564,80 @@ describe('CreaturesService', () => {
             expect(creature.y).toBe(4);
         });
 
+        it('LuminousSwarm does not move to an Active non-Forest/SacredGrove/Foothill neighbor', () => {
+            makeActive(5, 4, 'Meadow');
+            makeActive(5, 6, 'Water');
+            makeActive(4, 5, 'Mountain');
+            makeActive(6, 5, 'Ruins');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt: no valid neighbors → stays
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(5);
+        });
+
+        it('LuminousSwarm moves to an Active Forest neighbor', () => {
+            makeActive(5, 4, 'Forest');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt
+                .mockReturnValueOnce(0)     // picks (5,4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(4);
+        });
+
+        it('LuminousSwarm moves to an Active Sacred Grove neighbor', () => {
+            makeActive(5, 4, 'Sacred Grove');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt
+                .mockReturnValueOnce(0)     // picks (5,4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(4);
+        });
+
+        it('LuminousSwarm moves to an Active Foothill neighbor', () => {
+            makeActive(5, 4, 'Foothill');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'ls_1', type: 'LuminousSwarm', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt
+                .mockReturnValueOnce(0)     // picks (5,4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(4);
+        });
+
         it('does not emit creatureMoved when creature stays', () => {
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
