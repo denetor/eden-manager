@@ -57,8 +57,8 @@ export class BuildingSynergyService {
             return 'Shrine';
         }
 
-        // Tower: Foothill
-        if (cell.terrainType === 'Foothill') {
+        // Tower: Foothill, no other tower within 3 tiles
+        if (cell.terrainType === 'Foothill' && !this.hasTowerInRadius(x, y, 3)) {
             return 'Tower';
         }
 
@@ -68,6 +68,12 @@ export class BuildingSynergyService {
     private hasWaterInRadius(x: number, y: number): boolean {
         return this.grid.getCellsInRadius(x, y, WATER_RADIUS).some(
             c => c.terrainType === 'Water' && c.state === 'Active'
+        );
+    }
+
+    private hasTowerInRadius(x: number, y: number, radius: number): boolean {
+        return this.grid.getCellsInRadius(x, y, radius).some(
+            c => c.building === 'Tower'
         );
     }
 

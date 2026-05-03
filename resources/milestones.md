@@ -474,7 +474,7 @@ Progress from Excalibur demo → v1.0 Release. Each version adds 1–4 small fea
 - [x] StoneGiant must move only on Mountain cells
 - [x] Luminous swarm moves only to Forest or Sacred Grove cells
 - [x] Allow spawning humans on hills, forest, mountain
-- [ ] Change GuardTower spawn logic: add a rule to allow spawn ony if no other tower is within a 3 tiles radius
+- [x] Change GuardTower spawn logic: add a rule to allow spawn ony if no other tower is within a 3 tiles radius
 - [ ] Change Mill spawning logic to: if attached to Farm and Water and without other mills in a 3 tiles radius
 
 ---

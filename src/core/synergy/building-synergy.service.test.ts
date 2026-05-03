@@ -216,6 +216,39 @@ describe('BuildingSynergyService', () => {
 
             expect(grid.getCell(8, 8)?.building).toBeUndefined();
         });
+
+        it('should not place Tower when another Tower is within radius 3', () => {
+            makeActive(8, 8, 'Foothill');
+            makeActive(8, 6, 'Foothill');   // distance 2, within radius
+            grid.setBuilding(8, 6, 'Tower');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
+
+        it('should place Tower when nearest Tower is at distance 4', () => {
+            makeActive(8, 8, 'Foothill');
+            makeActive(8, 4, 'Foothill');   // distance 4, outside radius
+            grid.setBuilding(8, 4, 'Tower');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBe('Tower');
+        });
+
+        it('should place Tower when another Tower is at exactly radius 3 (boundary is inclusive, blocked)', () => {
+            makeActive(8, 8, 'Foothill');
+            makeActive(8, 5, 'Foothill');   // distance 3, on the boundary — blocked
+            grid.setBuilding(8, 5, 'Tower');
+            placeActiveHuman(8, 8);
+
+            service.apply();
+
+            expect(grid.getCell(8, 8)?.building).toBeUndefined();
+        });
     });
 
     // ─── General ──────────────────────────────────────────────────────────────
