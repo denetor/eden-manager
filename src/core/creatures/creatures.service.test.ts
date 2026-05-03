@@ -526,6 +526,44 @@ describe('CreaturesService', () => {
             expect(creature.y).toBe(5);
         });
 
+        it('StoneGiant does not move to an Active non-Mountain neighbor', () => {
+            makeActive(5, 4, 'Meadow');
+            makeActive(5, 6, 'Forest');
+            makeActive(4, 5, 'Water');
+            makeActive(6, 5, 'Ruins');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt: no valid Mountain neighbors → stays
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(5);
+        });
+
+        it('StoneGiant moves to an Active Mountain neighbor', () => {
+            makeActive(5, 4, 'Mountain');
+            const testService = CreaturesService.fromJSON({
+                creatures: [{ id: 'stone_1', type: 'StoneGiant', x: 5, y: 5 }]
+            }, grid)!;
+
+            jest.spyOn(Math, 'random')
+                .mockReturnValueOnce(0.6)   // move attempt
+                .mockReturnValueOnce(0)     // picks (5,4)
+                .mockReturnValueOnce(0.99); // despawn: no
+
+            testService.update();
+
+            const creature = testService.getCreatures()[0];
+            expect(creature.x).toBe(5);
+            expect(creature.y).toBe(4);
+        });
+
         it('does not emit creatureMoved when creature stays', () => {
             const testService = CreaturesService.fromJSON({
                 creatures: [{ id: 'sea_1', type: 'SeaSerpent', x: 5, y: 5 }]
