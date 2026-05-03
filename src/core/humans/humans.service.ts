@@ -79,7 +79,8 @@ export class HumansService extends EventEmitter {
         const hasFood = foodCells.some(
             cell =>
                 cell.state === 'Active' &&
-                (cell.terrainType === 'Meadow' || cell.terrainType === 'Fertile Plain')
+                (cell.terrainType === 'Meadow' || cell.terrainType === 'Fertile Plain' ||
+                    cell.terrainType === 'Foothill' || cell.terrainType === 'Forest')
         );
 
         return hasWater && hasFood ? 'Active' : 'Dormant';

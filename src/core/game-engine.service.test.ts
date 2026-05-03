@@ -671,4 +671,48 @@ describe('GameEngine', () => {
             expect(grid.getCell(5, 5)?.terrainType).toBe('Forest');
         });
     });
+
+    describe('spawnHuman', () => {
+        it('should spawn on Active Meadow', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Meadow');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(true);
+        });
+
+        it('should spawn on Active Fertile Plain', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Fertile Plain');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(true);
+        });
+
+        it('should spawn on Active Foothill', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Foothill');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(true);
+        });
+
+        it('should spawn on Active Forest', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Forest');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(true);
+        });
+
+        it('should not spawn on Active Water', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Water');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(false);
+        });
+
+        it('should not spawn on Active Mountain', () => {
+            grid.unveil(5, 5);
+            grid.awaken(5, 5);
+            grid.reshape(5, 5, 'Mountain');
+            expect(engine.spawnHuman(5, 5, 0)).toBe(false);
+        });
+    });
 });

@@ -6,7 +6,7 @@ describe('HumansService', () => {
     let service: HumansService;
 
     // Helpers to set up terrain quickly
-    const makeActive = (x: number, y: number, terrain: 'Water' | 'Meadow' | 'Fertile Plain') => {
+    const makeActive = (x: number, y: number, terrain: 'Water' | 'Meadow' | 'Fertile Plain' | 'Foothill' | 'Forest') => {
         grid.setCell(x, y, { state: 'Active', terrainType: terrain });
     };
 
@@ -99,6 +99,26 @@ describe('HumansService', () => {
             service.addHuman('h1', 8, 8);
             makeActive(8, 5, 'Water');
             makeActive(8, 6, 'Fertile Plain');
+
+            service.update();
+
+            expect(service.getHumans()[0].status).toBe('Active');
+        });
+
+        it('should count Active Foothill as a food source', () => {
+            service.addHuman('h1', 8, 8);
+            makeActive(8, 5, 'Water');
+            makeActive(8, 6, 'Foothill');
+
+            service.update();
+
+            expect(service.getHumans()[0].status).toBe('Active');
+        });
+
+        it('should count Active Forest as a food source', () => {
+            service.addHuman('h1', 8, 8);
+            makeActive(8, 5, 'Water');
+            makeActive(8, 6, 'Forest');
 
             service.update();
 
